@@ -1,0 +1,657 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+<!-- 2023-12-12 Tue 14:33 -->
+<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Iterative, real-world script development, Part 2 - the AI.</title>
+<meta name="author" content="Rostislav Svoboda" />
+<meta name="generator" content="Org Mode" />
+<style>
+  #content { max-width: 60em; margin: auto; }
+  .title  { text-align: center;
+             margin-bottom: .2em; }
+  .subtitle { text-align: center;
+              font-size: medium;
+              font-weight: bold;
+              margin-top:0; }
+  .todo   { font-family: monospace; color: red; }
+  .done   { font-family: monospace; color: green; }
+  .priority { font-family: monospace; color: orange; }
+  .tag    { background-color: #eee; font-family: monospace;
+            padding: 2px; font-size: 80%; font-weight: normal; }
+  .timestamp { color: #bebebe; }
+  .timestamp-kwd { color: #5f9ea0; }
+  .org-right  { margin-left: auto; margin-right: 0px;  text-align: right; }
+  .org-left   { margin-left: 0px;  margin-right: auto; text-align: left; }
+  .org-center { margin-left: auto; margin-right: auto; text-align: center; }
+  .underline { text-decoration: underline; }
+  #postamble p, #preamble p { font-size: 90%; margin: .2em; }
+  p.verse { margin-left: 3%; }
+  pre {
+    border: 1px solid #e6e6e6;
+    border-radius: 3px;
+    background-color: #f2f2f2;
+    padding: 8pt;
+    font-family: monospace;
+    overflow: auto;
+    margin: 1.2em;
+  }
+  pre.src {
+    position: relative;
+    overflow: auto;
+  }
+  pre.src:before {
+    display: none;
+    position: absolute;
+    top: -8px;
+    right: 12px;
+    padding: 3px;
+    color: #555;
+    background-color: #f2f2f299;
+  }
+  pre.src:hover:before { display: inline; margin-top: 14px;}
+  /* Languages per Org manual */
+  pre.src-asymptote:before { content: 'Asymptote'; }
+  pre.src-awk:before { content: 'Awk'; }
+  pre.src-authinfo::before { content: 'Authinfo'; }
+  pre.src-C:before { content: 'C'; }
+  /* pre.src-C++ doesn't work in CSS */
+  pre.src-clojure:before { content: 'Clojure'; }
+  pre.src-css:before { content: 'CSS'; }
+  pre.src-D:before { content: 'D'; }
+  pre.src-ditaa:before { content: 'ditaa'; }
+  pre.src-dot:before { content: 'Graphviz'; }
+  pre.src-calc:before { content: 'Emacs Calc'; }
+  pre.src-emacs-lisp:before { content: 'Emacs Lisp'; }
+  pre.src-fortran:before { content: 'Fortran'; }
+  pre.src-gnuplot:before { content: 'gnuplot'; }
+  pre.src-haskell:before { content: 'Haskell'; }
+  pre.src-hledger:before { content: 'hledger'; }
+  pre.src-java:before { content: 'Java'; }
+  pre.src-js:before { content: 'Javascript'; }
+  pre.src-latex:before { content: 'LaTeX'; }
+  pre.src-ledger:before { content: 'Ledger'; }
+  pre.src-lisp:before { content: 'Lisp'; }
+  pre.src-lilypond:before { content: 'Lilypond'; }
+  pre.src-lua:before { content: 'Lua'; }
+  pre.src-matlab:before { content: 'MATLAB'; }
+  pre.src-mscgen:before { content: 'Mscgen'; }
+  pre.src-ocaml:before { content: 'Objective Caml'; }
+  pre.src-octave:before { content: 'Octave'; }
+  pre.src-org:before { content: 'Org mode'; }
+  pre.src-oz:before { content: 'OZ'; }
+  pre.src-plantuml:before { content: 'Plantuml'; }
+  pre.src-processing:before { content: 'Processing.js'; }
+  pre.src-python:before { content: 'Python'; }
+  pre.src-R:before { content: 'R'; }
+  pre.src-ruby:before { content: 'Ruby'; }
+  pre.src-sass:before { content: 'Sass'; }
+  pre.src-scheme:before { content: 'Scheme'; }
+  pre.src-screen:before { content: 'Gnu Screen'; }
+  pre.src-sed:before { content: 'Sed'; }
+  pre.src-sh:before { content: 'shell'; }
+  pre.src-sql:before { content: 'SQL'; }
+  pre.src-sqlite:before { content: 'SQLite'; }
+  /* additional languages in org.el's org-babel-load-languages alist */
+  pre.src-forth:before { content: 'Forth'; }
+  pre.src-io:before { content: 'IO'; }
+  pre.src-J:before { content: 'J'; }
+  pre.src-makefile:before { content: 'Makefile'; }
+  pre.src-maxima:before { content: 'Maxima'; }
+  pre.src-perl:before { content: 'Perl'; }
+  pre.src-picolisp:before { content: 'Pico Lisp'; }
+  pre.src-scala:before { content: 'Scala'; }
+  pre.src-shell:before { content: 'Shell Script'; }
+  pre.src-ebnf2ps:before { content: 'ebfn2ps'; }
+  /* additional language identifiers per "defun org-babel-execute"
+       in ob-*.el */
+  pre.src-cpp:before  { content: 'C++'; }
+  pre.src-abc:before  { content: 'ABC'; }
+  pre.src-coq:before  { content: 'Coq'; }
+  pre.src-groovy:before  { content: 'Groovy'; }
+  /* additional language identifiers from org-babel-shell-names in
+     ob-shell.el: ob-shell is the only babel language using a lambda to put
+     the execution function name together. */
+  pre.src-bash:before  { content: 'bash'; }
+  pre.src-csh:before  { content: 'csh'; }
+  pre.src-ash:before  { content: 'ash'; }
+  pre.src-dash:before  { content: 'dash'; }
+  pre.src-ksh:before  { content: 'ksh'; }
+  pre.src-mksh:before  { content: 'mksh'; }
+  pre.src-posh:before  { content: 'posh'; }
+  /* Additional Emacs modes also supported by the LaTeX listings package */
+  pre.src-ada:before { content: 'Ada'; }
+  pre.src-asm:before { content: 'Assembler'; }
+  pre.src-caml:before { content: 'Caml'; }
+  pre.src-delphi:before { content: 'Delphi'; }
+  pre.src-html:before { content: 'HTML'; }
+  pre.src-idl:before { content: 'IDL'; }
+  pre.src-mercury:before { content: 'Mercury'; }
+  pre.src-metapost:before { content: 'MetaPost'; }
+  pre.src-modula-2:before { content: 'Modula-2'; }
+  pre.src-pascal:before { content: 'Pascal'; }
+  pre.src-ps:before { content: 'PostScript'; }
+  pre.src-prolog:before { content: 'Prolog'; }
+  pre.src-simula:before { content: 'Simula'; }
+  pre.src-tcl:before { content: 'tcl'; }
+  pre.src-tex:before { content: 'TeX'; }
+  pre.src-plain-tex:before { content: 'Plain TeX'; }
+  pre.src-verilog:before { content: 'Verilog'; }
+  pre.src-vhdl:before { content: 'VHDL'; }
+  pre.src-xml:before { content: 'XML'; }
+  pre.src-nxml:before { content: 'XML'; }
+  /* add a generic configuration mode; LaTeX export needs an additional
+     (add-to-list 'org-latex-listings-langs '(conf " ")) in .emacs */
+  pre.src-conf:before { content: 'Configuration File'; }
+
+  table { border-collapse:collapse; }
+  caption.t-above { caption-side: top; }
+  caption.t-bottom { caption-side: bottom; }
+  td, th { vertical-align:top;  }
+  th.org-right  { text-align: center;  }
+  th.org-left   { text-align: center;   }
+  th.org-center { text-align: center; }
+  td.org-right  { text-align: right;  }
+  td.org-left   { text-align: left;   }
+  td.org-center { text-align: center; }
+  dt { font-weight: bold; }
+  .footpara { display: inline; }
+  .footdef  { margin-bottom: 1em; }
+  .figure { padding: 1em; }
+  .figure p { text-align: center; }
+  .equation-container {
+    display: table;
+    text-align: center;
+    width: 100%;
+  }
+  .equation {
+    vertical-align: middle;
+  }
+  .equation-label {
+    display: table-cell;
+    text-align: right;
+    vertical-align: middle;
+  }
+  .inlinetask {
+    padding: 10px;
+    border: 2px solid gray;
+    margin: 10px;
+    background: #ffffcc;
+  }
+  #org-div-home-and-up
+   { text-align: right; font-size: 70%; white-space: nowrap; }
+  textarea { overflow-x: auto; }
+  .linenr { font-size: smaller }
+  .code-highlighted { background-color: #ffff00; }
+  .org-info-js_info-navigation { border-style: none; }
+  #org-info-js_console-label
+    { font-size: 10px; font-weight: bold; white-space: nowrap; }
+  .org-info-js_search-highlight
+    { background-color: #ffff00; color: #000000; font-weight: bold; }
+  .org-svg { }
+</style>
+</head>
+<body>
+<div id="content" class="content">
+<h1 class="title">Iterative, real-world script development, Part 2 - the AI.</h1>
+<style>
+blockquote {
+    font-style: italic;
+}
+</style>
+
+<p>
+Let's convert the Fish shell script <code>cleanup-checkout-cache.fish</code> from the
+previous blog to Guile Scheme in a straight manner, basically by <i>"putting
+parenthesis around the Fish code"</i>. If you're only interested in the final
+result, proceed below<sup><a id="fnr.1" class="footref" href="#fn.1" role="doc-backlink">1</a></sup>.
+</p>
+
+<p>
+Let's fire up our <code>BananaCodeJoe</code> alter-ego aaand&#x2026; no. That sounds like too
+much manual labor. What about some of the latest fashion approach, you know,
+the stuff cool kids use. So yeah, let's fire up our ChatGPT alter-ego
+instead. Set <code>model: Plugins Beta gpt4</code>, <code>plugin: CoderPad</code> aaand:
+</p>
+
+<div id="outline-container-orge6e9d48" class="outline-2">
+<h2 id="orge6e9d48"><span class="section-number-2">1.</span> Upload the <code>cleanup-checkout-cache.fish</code> and enter the prompt:</h2>
+<div class="outline-text-2" id="text-1">
+<div class="org-src-container">
+<pre class="src src-markdown">Please analyze the Fish-shell script I'm uploading you as attachment and convert
+it to Guile Scheme according to the rules and guidelines I'm going to send you
+in the next step.
+
+We will proceed with the conversion step-by-step.
+
+After the step-by-step conversion is done, please combine all the steps
+together, convert the whole Fish script and provide me a download link to the
+resulting Guile Scheme script file.
+</pre>
+</div>
+
+<p>
+&#x2026; and it doesn't recognize attachments. Ugh.
+</p>
+
+<p>
+Switching to plain ChatGPT (GPT-4 (All Tools) Gpt4), uploading the script
+again and repeating the prompt input and&#x2026; and that worked! Ugh.
+</p>
+
+<p>
+Here we read the response to make sure our alter-ego understands the task
+ahead, and (assuming it does):
+</p>
+</div>
+</div>
+
+<div id="outline-container-org11a9507" class="outline-2">
+<h2 id="org11a9507"><span class="section-number-2">2.</span> Enter the prompt:</h2>
+<div class="outline-text-2" id="text-2">
+<div class="org-src-container">
+<pre class="src src-markdown"><span style="color: #715ab1;">The conversion rules and guidelines are</span><span style="color: #a094a2;">:</span>
+
+<span style="color: #a094a2;">-</span> The conversion result consists of the following blocks:
+<span style="color: #a094a2;">```</span>
+<span style="color: #4e3163;">  [Guile Scheme hashbang]</span>
+<span style="color: #4e3163;">  [Series of comments explaining script's purpose and functionality - the docstring.]</span>
+<span style="color: #4e3163;">  [Some Guile Scheme snippet or snippets]</span>
+<span style="color: #4e3163;">  [Converted code]</span>
+<span style="color: #a094a2;">```</span>
+
+<span style="color: #a094a2;">-</span> The generated Guile code must follow the same logic and have the same
+  structure as the origin.
+
+<span style="color: #a094a2;">-</span> Keep the generated Guile code simple and well readable. Avoid nesting
+  s-expressions if nesting is not present in the origin. Don't do any
+  "smart" conversion.
+
+<span style="color: #a094a2;">-</span> Make sure all strings are properly surrounded with double quotes.
+
+<span style="color: #a094a2;">-</span> Make sure all generated s-expressions are syntactically valid!
+
+<span style="color: #a094a2;">-</span> Conversion of regular expressions:
+  <span style="color: #a094a2;">+</span> Escape only the backslashes by doubling them (<span style="color: #a094a2;">`</span><span style="color: #4e3163;">\</span><span style="color: #a094a2;">`</span> &#8594; <span style="color: #a094a2;">`</span><span style="color: #4e3163;">\\</span><span style="color: #a094a2;">`</span>). Do not escape
+    other characters.
+  <span style="color: #a094a2;">+</span> Keep the structure of the regular expression unchanged.
+
+<span style="color: #a094a2;">-</span> Convert Fish-shell hashbang:
+<span style="color: #a094a2;">```</span>
+<span style="color: #4e3163;">#!/usr/bin/env fish</span>
+<span style="color: #a094a2;">```</span>
+  to Guile Scheme hashbang:
+<span style="color: #a094a2;">```</span>
+<span style="color: #4e3163;">#!/usr/bin/env guile</span>
+<span style="color: #4e3163;">!#</span>
+<span style="color: #a094a2;">```</span>
+
+<span style="color: #a094a2;">-</span> After the docstring append this Guile Scheme snippet:
+<span style="color: #a094a2;">```</span><span style="color: #ba2f59; font-weight: bold;">scheme</span>
+<span style="color: #3a81c3;">(</span><span style="color: #3a81c3; font-weight: bold;">use-modules</span>
+ <span style="color: #2aa1ae; background-color: #ecf3ec;">;; </span><span style="color: #2aa1ae; background-color: #ecf3ec;">provides read-line</span>
+ <span style="color: #6c3163;">(</span>ice-9 rdelim<span style="color: #6c3163;">)</span>
+ <span style="color: #2aa1ae; background-color: #ecf3ec;">;; </span><span style="color: #2aa1ae; background-color: #ecf3ec;">provides open-input-pipe</span>
+ <span style="color: #6c3163;">(</span>ice-9 popen<span style="color: #6c3163;">)</span><span style="color: #3a81c3;">)</span>
+
+<span style="color: #3a81c3;">(</span><span style="color: #3a81c3; font-weight: bold;">define</span> <span style="color: #6c3163;">(</span><span style="color: #6c3163; font-weight: bold;">read-all-strings</span> port<span style="color: #6c3163;">)</span>
+  <span style="color: #2d9574;">"Return a list of all lines of text from the PORT.</span>
+<span style="color: #2d9574;">Returns a list of strings."</span>
+  <span style="color: #6c3163;">(</span><span style="color: #3a81c3; font-weight: bold;">let</span> <span style="color: #6c3163; font-weight: bold;">loop</span> <span style="color: #2d9574;">(</span><span style="color: #67b11d;">(</span>res '<span style="color: #b1951d;">()</span><span style="color: #67b11d;">)</span>
+             <span style="color: #67b11d;">(</span>str <span style="color: #b1951d;">(</span>read-line port<span style="color: #b1951d;">)</span><span style="color: #67b11d;">)</span><span style="color: #2d9574;">)</span> <span style="color: #2aa1ae; background-color: #ecf3ec;">; </span><span style="color: #2aa1ae; background-color: #ecf3ec;">read-line from (ice-9 rdelim)</span>
+    <span style="color: #2d9574;">(</span><span style="color: #3a81c3; font-weight: bold;">if</span> <span style="color: #67b11d;">(</span><span style="color: #3a81c3; font-weight: bold;">and</span> str <span style="color: #b1951d;">(</span>not <span style="color: #3a81c3;">(</span>eof-object? str<span style="color: #3a81c3;">)</span><span style="color: #b1951d;">)</span><span style="color: #67b11d;">)</span>
+        <span style="color: #67b11d;">(</span>loop <span style="color: #b1951d;">(</span>append res <span style="color: #3a81c3;">(</span>list str<span style="color: #3a81c3;">)</span><span style="color: #b1951d;">)</span>
+              <span style="color: #b1951d;">(</span>read-line port<span style="color: #b1951d;">)</span><span style="color: #67b11d;">)</span>
+        res<span style="color: #2d9574;">)</span><span style="color: #6c3163;">)</span><span style="color: #3a81c3;">)</span>
+
+<span style="color: #3a81c3;">(</span><span style="color: #3a81c3; font-weight: bold;">define</span> <span style="color: #6c3163;">(</span><span style="color: #6c3163; font-weight: bold;">exec</span> command-string<span style="color: #6c3163;">)</span>
+  <span style="color: #2d9574;">"Run the shell COMMAND using &#8216;/bin/sh -c&#8217; with &#8216;OPEN_READ&#8217; mode, ie. to read</span>
+<span style="color: #2d9574;">from the subprocess. Wait for the command to terminate and return a list of strings</span>
+<span style="color: #2d9574;">containing its output."</span>
+  <span style="color: #2aa1ae; background-color: #ecf3ec;">;; </span><span style="color: #2aa1ae; background-color: #ecf3ec;">(format #t "[DEBUG] command-string: ~a</span><span style="color: #a094a2; background-color: #ecf3ec;">\</span><span style="color: #2aa1ae; background-color: #ecf3ec;">n" command-string)</span>
+  <span style="color: #6c3163;">(</span><span style="color: #3a81c3; font-weight: bold;">let*</span> <span style="color: #2d9574;">(</span><span style="color: #67b11d;">(</span>port <span style="color: #b1951d;">(</span>open-input-pipe command-string<span style="color: #b1951d;">)</span><span style="color: #67b11d;">)</span> <span style="color: #2aa1ae; background-color: #ecf3ec;">; </span><span style="color: #2aa1ae; background-color: #ecf3ec;">open-input-pipe from (ice-9 popen)</span>
+         <span style="color: #2aa1ae; background-color: #ecf3ec;">;; </span><span style="color: #2aa1ae; background-color: #ecf3ec;">`read-all-strings' must be called before `close-pipe'.</span>
+         <span style="color: #67b11d;">(</span>results <span style="color: #b1951d;">(</span>read-all-strings port<span style="color: #b1951d;">)</span><span style="color: #67b11d;">)</span><span style="color: #2d9574;">)</span>
+    <span style="color: #2d9574;">(</span>close-pipe port<span style="color: #2d9574;">)</span>  <span style="color: #2aa1ae; background-color: #ecf3ec;">;; </span><span style="color: #2aa1ae; background-color: #ecf3ec;">the return code of the command execution is ignored</span>
+    results<span style="color: #6c3163;">)</span><span style="color: #3a81c3;">)</span>
+<span style="color: #a094a2;">```</span>
+
+<span style="color: #a094a2;">-</span> If there are any Fish-shell commands commented out, convert them too.
+
+<span style="color: #a094a2;">-</span> Whenever applicable prefer constructing strings using <span style="color: #a094a2;">`</span><span style="color: #4e3163;">(format ...)</span><span style="color: #a094a2;">`</span> instead
+  of using <span style="color: #a094a2;">`</span><span style="color: #4e3163;">string-append</span><span style="color: #a094a2;">`</span> in the conversion result.
+
+<span style="color: #a094a2;">-</span> <span style="color: #a094a2;">`</span><span style="color: #4e3163;">exec</span><span style="color: #a094a2;">`</span> returns a list of strings, so for better readability of the DEBUG outputs use <span style="color: #a094a2;">`</span><span style="color: #4e3163;">string-join</span><span style="color: #a094a2;">`</span>. E.g. convert:
+<span style="color: #a094a2;">```</span><span style="color: #ba2f59; font-weight: bold;">fish</span>
+<span style="color: #2aa1ae; background-color: #ecf3ec;"># </span><span style="color: #2aa1ae; background-color: #ecf3ec;">printf "[DEBUG] &lt;variable&gt;:</span><span style="color: #a094a2; background-color: #ecf3ec;">\</span><span style="color: #2aa1ae; background-color: #ecf3ec;">n$&lt;variable&gt;</span><span style="color: #a094a2; background-color: #ecf3ec;">\</span><span style="color: #2aa1ae; background-color: #ecf3ec;">n"</span>
+<span style="color: #a094a2;">```</span>
+  to:
+<span style="color: #a094a2;">```</span><span style="color: #ba2f59; font-weight: bold;">scheme</span>
+<span style="color: #2aa1ae; background-color: #ecf3ec;">;; </span><span style="color: #2aa1ae; background-color: #ecf3ec;">(format #t "[DEBUG] &lt;variable&gt;:</span><span style="color: #a094a2; background-color: #ecf3ec;">\</span><span style="color: #2aa1ae; background-color: #ecf3ec;">n~a</span><span style="color: #a094a2; background-color: #ecf3ec;">\</span><span style="color: #2aa1ae; background-color: #ecf3ec;">n" (string-join &lt;variable&gt; "</span><span style="color: #a094a2; background-color: #ecf3ec;">\</span><span style="color: #2aa1ae; background-color: #ecf3ec;">n"))</span>
+<span style="color: #a094a2;">```</span>
+
+<span style="color: #a094a2;">-</span> Simple conversion rules:
+<span style="color: #655370; background-color: #edf1ed;">  |  Fish shell code                  | Guile scheme code                                      |</span>
+<span style="color: #655370; background-color: #edf1ed;">  |--------------------------------------------------------------------------------------------|</span>
+<span style="color: #655370; background-color: #edf1ed;">  | </span><span style="color: #a094a2; background-color: #edf1ed;">`</span><span style="color: #4e3163; background-color: #edf1ed;">set &lt;variable&gt; &lt;value&gt;</span><span style="color: #a094a2; background-color: #edf1ed;">`</span><span style="color: #655370; background-color: #edf1ed;">          | </span><span style="color: #a094a2; background-color: #edf1ed;">`</span><span style="color: #4e3163; background-color: #edf1ed;">(define &lt;variable&gt; &lt;value&gt;)</span><span style="color: #a094a2; background-color: #edf1ed;">`</span><span style="color: #655370; background-color: #edf1ed;">                          |</span>
+<span style="color: #655370; background-color: #edf1ed;">  | </span><span style="color: #a094a2; background-color: #edf1ed;">`</span><span style="color: #4e3163; background-color: #edf1ed;">set --append &lt;variable&gt; &lt;value&gt;</span><span style="color: #a094a2; background-color: #edf1ed;">`</span><span style="color: #655370; background-color: #edf1ed;"> | </span><span style="color: #a094a2; background-color: #edf1ed;">`</span><span style="color: #4e3163; background-color: #edf1ed;">(set! &lt;variable&gt; (append &lt;variable&gt; (list &lt;value&gt;)))</span><span style="color: #a094a2; background-color: #edf1ed;">`</span><span style="color: #655370; background-color: #edf1ed;"> |</span>
+<span style="color: #655370; background-color: #edf1ed;">  | </span><span style="color: #a094a2; background-color: #edf1ed;">`</span><span style="color: #4e3163; background-color: #edf1ed;">$&lt;variable&gt;[$i]</span><span style="color: #a094a2; background-color: #edf1ed;">`</span><span style="color: #655370; background-color: #edf1ed;">                 | </span><span style="color: #a094a2; background-color: #edf1ed;">`</span><span style="color: #4e3163; background-color: #edf1ed;">(list-ref &lt;variable&gt; i)</span><span style="color: #a094a2; background-color: #edf1ed;">`</span><span style="color: #655370; background-color: #edf1ed;">                              |</span>
+<span style="color: #655370; background-color: #edf1ed;">  | </span><span style="color: #a094a2; background-color: #edf1ed;">`</span><span style="color: #4e3163; background-color: #edf1ed;">test -n "$&lt;variable&gt;"</span><span style="color: #a094a2; background-color: #edf1ed;">`</span><span style="color: #655370; background-color: #edf1ed;">           | </span><span style="color: #a094a2; background-color: #edf1ed;">`</span><span style="color: #4e3163; background-color: #edf1ed;">(&gt; (length &lt;variable&gt;) 0)</span><span style="color: #a094a2; background-color: #edf1ed;">`</span><span style="color: #655370; background-color: #edf1ed;">                            |</span>
+<span style="color: #655370; background-color: #edf1ed;">  | </span><span style="color: #a094a2; background-color: #edf1ed;">`</span><span style="color: #4e3163; background-color: #edf1ed;">test -d $&lt;variable&gt;</span><span style="color: #a094a2; background-color: #edf1ed;">`</span><span style="color: #655370; background-color: #edf1ed;">             | </span><span style="color: #a094a2; background-color: #edf1ed;">`</span><span style="color: #4e3163; background-color: #edf1ed;">(access? &lt;variable&gt; F_OK)</span><span style="color: #a094a2; background-color: #edf1ed;">`</span><span style="color: #655370; background-color: #edf1ed;">                            |</span>
+
+<span style="color: #a094a2;">-</span> Conversion of an empty Fish variable:
+<span style="color: #655370; background-color: #edf1ed;">  |  Fish shell code                  | Guile scheme code                                      |</span>
+<span style="color: #655370; background-color: #edf1ed;">  |--------------------------------------------------------------------------------------------|</span>
+<span style="color: #655370; background-color: #edf1ed;">  | </span><span style="color: #a094a2; background-color: #edf1ed;">`</span><span style="color: #4e3163; background-color: #edf1ed;">set &lt;variable&gt; # ...</span><span style="color: #a094a2; background-color: #edf1ed;">`</span><span style="color: #655370; background-color: #edf1ed;">            | </span><span style="color: #a094a2; background-color: #edf1ed;">`</span><span style="color: #4e3163; background-color: #edf1ed;">(define &lt;variable&gt; (list)) ; ...</span><span style="color: #a094a2; background-color: #edf1ed;">`</span><span style="color: #655370; background-color: #edf1ed;">                     |</span>
+
+<span style="color: #a094a2;">-</span> Fish-shell uses parentheses for operating system command substitution:
+<span style="color: #655370; background-color: #edf1ed;">  |  Fish shell code                 | Guile scheme code                                       |</span>
+<span style="color: #655370; background-color: #edf1ed;">  |--------------------------------------------------------------------------------------------|</span>
+<span style="color: #655370; background-color: #edf1ed;">  | </span><span style="color: #a094a2; background-color: #edf1ed;">`</span><span style="color: #4e3163; background-color: #edf1ed;">set &lt;variable&gt; (&lt;OS-command&gt;)</span><span style="color: #a094a2; background-color: #edf1ed;">`</span><span style="color: #655370; background-color: #edf1ed;">  | </span><span style="color: #a094a2; background-color: #edf1ed;">`</span><span style="color: #4e3163; background-color: #edf1ed;">(define &lt;variable&gt; (exec "&lt;OS-command&gt;"))</span><span style="color: #a094a2; background-color: #edf1ed;">`</span><span style="color: #655370; background-color: #edf1ed;">             |</span>
+
+  The <span style="color: #a094a2;">`</span><span style="color: #4e3163;">exec</span><span style="color: #a094a2;">`</span> is a Guile Scheme function accepting some command-string as a
+  parameter. Here:
+  <span style="color: #a094a2;">+</span> The <span style="color: #a094a2;">`</span><span style="color: #4e3163;">"&lt;OS-command&gt;"</span><span style="color: #a094a2;">`</span> in the conversion result is built by printing to string:
+<span style="color: #a094a2;">```</span><span style="color: #ba2f59; font-weight: bold;">scheme</span>
+<span style="color: #3a81c3;">(</span>format #f <span style="color: #ba2f59; font-weight: bold;">&lt;guile-format-string&gt;</span> <span style="color: #ba2f59; font-weight: bold;">&lt;variable0&gt;</span> ... <span style="color: #ba2f59; font-weight: bold;">&lt;variableN&gt;</span><span style="color: #3a81c3;">)</span>`
+<span style="color: #a094a2;">```</span>
+  <span style="color: #a094a2;">+</span> Make sure the regexp used for <span style="color: #a094a2;">`</span><span style="color: #4e3163;">grep</span><span style="color: #a094a2;">`</span> will be surrounded by properly escaped
+    double quotes in the conversion result. E.g.: <span style="color: #a094a2;">`</span><span style="color: #4e3163;">grep ... \"~a\"</span><span style="color: #a094a2;">`</span>
+
+  <span style="color: #a094a2;">-</span> <span style="color: #a094a2;">`</span><span style="color: #4e3163;">(define &lt;variable&gt; &lt;value&gt;)</span><span style="color: #a094a2;">`</span> cannot be used inside <span style="color: #a094a2;">`</span><span style="color: #4e3163;">(begin ...)</span><span style="color: #a094a2;">`</span>. Use
+    <span style="color: #a094a2;">`</span><span style="color: #4e3163;">(let* ((&lt;variable&gt; &lt;value&gt;)) ...)</span><span style="color: #a094a2;">`</span> instead.
+
+  <span style="color: #a094a2;">-</span> Conversion of the loops. Make sure you understand the specific actions
+    performed within the loops and how other commands should be translated.
+    Then:
+<span style="color: #a094a2;">```</span><span style="color: #ba2f59; font-weight: bold;">fish</span>
+<span style="color: #3a81c3; font-weight: bold;">for</span> <span style="color: #715ab1;">&lt;index-variable&gt;</span> <span style="color: #3a81c3; font-weight: bold;">in</span> <span style="color: #2d9574;">&lt;variable&gt;</span>
+    ...
+<span style="color: #3a81c3; font-weight: bold;">end</span>
+<span style="color: #a094a2;">```</span>
+    corresponds to:
+<span style="color: #a094a2;">```</span><span style="color: #ba2f59; font-weight: bold;">scheme</span>
+<span style="color: #3a81c3;">(</span><span style="color: #3a81c3; font-weight: bold;">for-each</span>
+ <span style="color: #6c3163;">(</span><span style="color: #3a81c3; font-weight: bold;">lambda</span> <span style="color: #2d9574;">(</span><span style="color: #ba2f59; font-weight: bold;">&lt;index-variable&gt;</span><span style="color: #2d9574;">)</span>
+   ...<span style="color: #6c3163;">)</span>
+ <span style="color: #ba2f59; font-weight: bold;">&lt;variable&gt;</span><span style="color: #3a81c3;">)</span>
+<span style="color: #a094a2;">```</span>
+</pre>
+</div>
+
+<p>
+&#x2026; and keep on iterating the prompt again and again&#x2026; and again and
+again&#x2026; and again and again because even if our alter-ego is rather smart,
+it:
+</p>
+<ul class="org-ul">
+<li>Sometimes forgets what exactly the Fish shell scripts contains.</li>
+<li>Escapes other than the backslashes, despite being explicitly instructed not
+to do so.</li>
+<li>Can correct its mistakes but a couple of steps later starts to make the same
+mistakes again.</li>
+<li>Occasionally freezes</li>
+<li>Occasionally freezes at the very last step, while generating the download
+link. Grrr :-(</li>
+<li>etc.</li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-org1eff624" class="outline-2">
+<h2 id="org1eff624"><span class="section-number-2">3.</span> Summary and final thoughts</h2>
+<div class="outline-text-2" id="text-3">
+<p>
+As of now(!), December 2023:
+</p>
+
+<ul class="org-ul">
+<li>Using ChatGPT is about "trying to learn how to teach by
+trial-and-error". It's about learning how to craft prompts.</li>
+
+<li>You can easily spend countless hours on improving the conversion
+instructions and you never get the consistency of good results.</li>
+
+<li>ChatGPT really likes encouraging and positive feedback responses, e.g.:
+Nice, really great, I'm happy, flawless!, awesome!, you're great, etc. or
+even more verbose.</li>
+
+<li>Sometimes you reach the valley of the local optimization minimum where you
+just can't get it back working properly. In such a situation, it's just
+better to abandon the current dialogue and restart the whole conversation
+from scratch.</li>
+</ul>
+
+<p>
+Ideas not explored and investigated:
+</p>
+<ul class="org-ul">
+<li><a href="https://platform.openai.com/finetune">Fine-tuning</a>, (model) customization and related concepts.</li>
+<li>Since ChatGPT uses Python for the conversion a better idea might be to write
+the your scripts in Python instead of the language of your choice (the
+Fish-shell in our case) and then try to convert it to Guile Scheme.</li>
+<li><p>
+Is it possible to edit the Python code used for code generation?  Since the
+Python code which ChatGPT creates for the conversion is provided, (open up
+the "Used Python" dropdown box) it may be more efficient to edit the Python
+code manually, either by instructing ChatGPT:
+</p>
+<div class="org-src-container">
+<pre class="src src-markdown">In the Python code you generated. Change this-to-that and run again.
+</pre>
+</div>
+<p>
+or asking ChatGPT to create a download link for the Python code and then
+editing and developing it yourself without involving ChatGPT anymore.
+</p></li>
+</ul>
+
+<p>
+In the next blog, we'll analyze and properly implement the script using higher
+order functions and the functional programming paradigm. This will enhance
+both the script's functionality and efficiency.
+</p>
+
+<p>
+In the next blog, we will delve into a detailed analysis and refined
+implementation of the script, employing higher order functions and the
+functional programming paradigm. This approach aims to enhance the script's
+modularity and reusability, paving the way for potential integration into
+&#x2026; well wherever you need it ;-)
+</p>
+</div>
+</div>
+<div id="footnotes">
+<h2 class="footnotes">Footnotes: </h2>
+<div id="text-footnotes">
+
+<div class="footdef"><sup><a id="fn.1" class="footnum" href="#fnr.1" role="doc-backlink">1</a></sup> <div class="footpara" role="doc-footnote"><p class="footpara">
+The final result (redacted). And as usual - read and
+understand the code before you run it.
+</p>
+<div class="org-src-container">
+<pre class="src src-scheme">#!/usr/bin/env guile
+!#
+
+<span style="color: #2aa1ae; background-color: #ecf3ec;">;;; </span><span style="color: #2aa1ae; background-color: #ecf3ec;">From</span>
+<span style="color: #2aa1ae; background-color: #ecf3ec;">;;; </span><span style="color: #2aa1ae; background-color: #ecf3ec;">https://guix.gnu.org/manual/devel/en/guix.html#index-Git_002c-using-the-latest-commit</span>
+<span style="color: #2aa1ae; background-color: #ecf3ec;">;;;</span>
+<span style="color: #2aa1ae; background-color: #ecf3ec;">;;; </span><span style="color: #2aa1ae; background-color: #ecf3ec;">Checkouts are kept in a cache under ~/.cache/guix/checkouts to speed up</span>
+<span style="color: #2aa1ae; background-color: #ecf3ec;">;;; </span><span style="color: #2aa1ae; background-color: #ecf3ec;">consecutive accesses to the same repository. You may want to clean it up</span>
+<span style="color: #2aa1ae; background-color: #ecf3ec;">;;; </span><span style="color: #2aa1ae; background-color: #ecf3ec;">once in a while to save disk space.</span>
+
+<span style="color: #3a81c3;">(</span><span style="color: #3a81c3; font-weight: bold;">use-modules</span>
+ <span style="color: #2aa1ae; background-color: #ecf3ec;">;; </span><span style="color: #2aa1ae; background-color: #ecf3ec;">provides read-line</span>
+ <span style="color: #6c3163;">(</span>ice-9 rdelim<span style="color: #6c3163;">)</span>
+ <span style="color: #2aa1ae; background-color: #ecf3ec;">;; </span><span style="color: #2aa1ae; background-color: #ecf3ec;">provides open-input-pipe</span>
+ <span style="color: #6c3163;">(</span>ice-9 popen<span style="color: #6c3163;">)</span><span style="color: #3a81c3;">)</span>
+
+<span style="color: #3a81c3;">(</span><span style="color: #3a81c3; font-weight: bold;">define</span> <span style="color: #6c3163;">(</span><span style="color: #6c3163; font-weight: bold;">read-all-strings</span> port<span style="color: #6c3163;">)</span>
+  <span style="color: #2d9574;">"Return a list of all lines of text from the PORT.</span>
+<span style="color: #2d9574;">Returns a list of strings."</span>
+  <span style="color: #6c3163;">(</span><span style="color: #3a81c3; font-weight: bold;">let</span> <span style="color: #6c3163; font-weight: bold;">loop</span> <span style="color: #2d9574;">(</span><span style="color: #67b11d;">(</span>res '<span style="color: #b1951d;">()</span><span style="color: #67b11d;">)</span>
+             <span style="color: #67b11d;">(</span>str <span style="color: #b1951d;">(</span>read-line port<span style="color: #b1951d;">)</span><span style="color: #67b11d;">)</span><span style="color: #2d9574;">)</span> <span style="color: #2aa1ae; background-color: #ecf3ec;">; </span><span style="color: #2aa1ae; background-color: #ecf3ec;">read-line from (ice-9 rdelim)</span>
+    <span style="color: #2d9574;">(</span><span style="color: #3a81c3; font-weight: bold;">if</span> <span style="color: #67b11d;">(</span><span style="color: #3a81c3; font-weight: bold;">and</span> str <span style="color: #b1951d;">(</span>not <span style="color: #3a81c3;">(</span>eof-object? str<span style="color: #3a81c3;">)</span><span style="color: #b1951d;">)</span><span style="color: #67b11d;">)</span>
+        <span style="color: #67b11d;">(</span>loop <span style="color: #b1951d;">(</span>append res <span style="color: #3a81c3;">(</span>list str<span style="color: #3a81c3;">)</span><span style="color: #b1951d;">)</span>
+              <span style="color: #b1951d;">(</span>read-line port<span style="color: #b1951d;">)</span><span style="color: #67b11d;">)</span>
+        res<span style="color: #2d9574;">)</span><span style="color: #6c3163;">)</span><span style="color: #3a81c3;">)</span>
+
+<span style="color: #3a81c3;">(</span><span style="color: #3a81c3; font-weight: bold;">define-public</span> <span style="color: #6c3163;">(</span><span style="color: #6c3163; font-weight: bold;">exec</span> command<span style="color: #6c3163;">)</span>
+  <span style="color: #2d9574;">"Run the shell COMMAND using &#8216;/bin/sh -c&#8217; with &#8216;OPEN_READ&#8217; mode, ie. to read</span>
+<span style="color: #2d9574;">from the subprocess. Wait for the command to terminate and return a string</span>
+<span style="color: #2d9574;">containing its output."</span>
+  <span style="color: #2aa1ae; background-color: #ecf3ec;">;; </span><span style="color: #2aa1ae; background-color: #ecf3ec;">(format #t "[DEBUG] command: ~a\n" command)</span>
+  <span style="color: #6c3163;">(</span><span style="color: #3a81c3; font-weight: bold;">let*</span> <span style="color: #2d9574;">(</span><span style="color: #67b11d;">(</span>port <span style="color: #b1951d;">(</span>open-input-pipe command<span style="color: #b1951d;">)</span><span style="color: #67b11d;">)</span> <span style="color: #2aa1ae; background-color: #ecf3ec;">; </span><span style="color: #2aa1ae; background-color: #ecf3ec;">open-input-pipe from (ice-9 popen)</span>
+         <span style="color: #2aa1ae; background-color: #ecf3ec;">;; </span><span style="color: #2aa1ae; background-color: #ecf3ec;">`read-all-strings' must be called before `close-pipe'.</span>
+         <span style="color: #67b11d;">(</span>results <span style="color: #b1951d;">(</span>read-all-strings port<span style="color: #b1951d;">)</span><span style="color: #67b11d;">)</span><span style="color: #2d9574;">)</span>
+    <span style="color: #2d9574;">(</span>close-pipe port<span style="color: #2d9574;">)</span>  <span style="color: #2aa1ae; background-color: #ecf3ec;">;; </span><span style="color: #2aa1ae; background-color: #ecf3ec;">the return code of the command execution is ignored</span>
+    results<span style="color: #6c3163;">)</span><span style="color: #3a81c3;">)</span>
+
+<span style="color: #3a81c3;">(</span><span style="color: #3a81c3; font-weight: bold;">define</span> <span style="color: #6c3163; font-weight: bold;">checkoutCache</span> <span style="color: #6c3163;">(</span>format #f <span style="color: #2d9574;">"~a/.cache/guix/checkouts"</span> <span style="color: #2d9574;">(</span>getenv <span style="color: #2d9574;">"HOME"</span><span style="color: #2d9574;">)</span><span style="color: #6c3163;">)</span><span style="color: #3a81c3;">)</span>
+
+<span style="color: #2aa1ae; background-color: #ecf3ec;">;; </span><span style="color: #2aa1ae; background-color: #ecf3ec;">regular expression for matching an URL</span>
+<span style="color: #3a81c3;">(</span><span style="color: #3a81c3; font-weight: bold;">define</span> <span style="color: #6c3163; font-weight: bold;">regexp</span> <span style="color: #2d9574;">"\\(https\\|http\\|file\\)\\?://[^ ]\\+"</span><span style="color: #3a81c3;">)</span>
+<span style="color: #2aa1ae; background-color: #ecf3ec;">;; </span><span style="color: #2aa1ae; background-color: #ecf3ec;">(format #t "[DEBUG] regexp: ~a\n" regexp)</span>
+
+<span style="color: #3a81c3;">(</span><span style="color: #3a81c3; font-weight: bold;">define</span> <span style="color: #6c3163; font-weight: bold;">cacheDirs</span>
+  <span style="color: #6c3163;">(</span>exec
+   <span style="color: #2d9574;">(</span>format #f <span style="color: #2d9574;">"find ~a -mindepth 1 -maxdepth 1 -type d"</span> checkoutCache<span style="color: #2d9574;">)</span><span style="color: #6c3163;">)</span><span style="color: #3a81c3;">)</span>
+<span style="color: #2aa1ae; background-color: #ecf3ec;">;; </span><span style="color: #2aa1ae; background-color: #ecf3ec;">(format #t "[DEBUG] ~a cacheDirs:\n" (length cacheDirs))</span>
+<span style="color: #2aa1ae; background-color: #ecf3ec;">;; </span><span style="color: #2aa1ae; background-color: #ecf3ec;">(format #t "~a\n" (string-join cacheDirs "\n"))</span>
+
+<span style="color: #2aa1ae; background-color: #ecf3ec;">;;  </span><span style="color: #2aa1ae; background-color: #ecf3ec;">find items under $checkoutCache which are NOT directories</span>
+<span style="color: #3a81c3;">(</span><span style="color: #3a81c3; font-weight: bold;">define</span> <span style="color: #6c3163; font-weight: bold;">cacheNonDirs</span>
+  <span style="color: #6c3163;">(</span>exec
+   <span style="color: #2d9574;">(</span>format #f <span style="color: #2d9574;">"find ~a -mindepth 1 -maxdepth 1 -not -type d"</span> checkoutCache<span style="color: #2d9574;">)</span><span style="color: #6c3163;">)</span><span style="color: #3a81c3;">)</span>
+<span style="color: #2aa1ae; background-color: #ecf3ec;">;; </span><span style="color: #2aa1ae; background-color: #ecf3ec;">(format #t "[DEBUG] ~a cacheNonDirs:\n" (length cacheNonDirs))</span>
+<span style="color: #2aa1ae; background-color: #ecf3ec;">;; </span><span style="color: #2aa1ae; background-color: #ecf3ec;">(format #t "~a\n" (string-join cacheNonDirs "\n"))</span>
+
+<span style="color: #3a81c3;">(</span><span style="color: #3a81c3; font-weight: bold;">define</span> <span style="color: #6c3163; font-weight: bold;">allChannelRepos</span>
+  <span style="color: #6c3163;">(</span>exec
+   <span style="color: #2d9574;">(</span>format
+    #f <span style="color: #2d9574;">"guix system describe | grep repository | grep --only-matching \"~a\""</span>
+    regexp<span style="color: #2d9574;">)</span><span style="color: #6c3163;">)</span><span style="color: #3a81c3;">)</span>
+<span style="color: #2aa1ae; background-color: #ecf3ec;">;; </span><span style="color: #2aa1ae; background-color: #ecf3ec;">(format #t "[DEBUG] ~a allChannelRepos:\n" (length allChannelRepos))</span>
+<span style="color: #2aa1ae; background-color: #ecf3ec;">;; </span><span style="color: #2aa1ae; background-color: #ecf3ec;">(format #t "~a\n" (string-join allChannelRepos "\n"))</span>
+
+<span style="color: #2aa1ae; background-color: #ecf3ec;">;; </span><span style="color: #2aa1ae; background-color: #ecf3ec;">define empty lists</span>
+<span style="color: #3a81c3;">(</span><span style="color: #3a81c3; font-weight: bold;">define</span> <span style="color: #6c3163; font-weight: bold;">keepDirs</span>   <span style="color: #6c3163;">(</span>list<span style="color: #6c3163;">)</span><span style="color: #3a81c3;">)</span> <span style="color: #2aa1ae; background-color: #ecf3ec;">; </span><span style="color: #2aa1ae; background-color: #ecf3ec;">local clones of git repositories actively used &amp; cached</span>
+<span style="color: #3a81c3;">(</span><span style="color: #3a81c3; font-weight: bold;">define</span> <span style="color: #6c3163; font-weight: bold;">keepURLs</span>   <span style="color: #6c3163;">(</span>list<span style="color: #6c3163;">)</span><span style="color: #3a81c3;">)</span> <span style="color: #2aa1ae; background-color: #ecf3ec;">; </span><span style="color: #2aa1ae; background-color: #ecf3ec;">fetch-URLs of these clones</span>
+<span style="color: #3a81c3;">(</span><span style="color: #3a81c3; font-weight: bold;">define</span> <span style="color: #6c3163; font-weight: bold;">removeDirs</span> <span style="color: #6c3163;">(</span>list<span style="color: #6c3163;">)</span><span style="color: #3a81c3;">)</span> <span style="color: #2aa1ae; background-color: #ecf3ec;">; </span><span style="color: #2aa1ae; background-color: #ecf3ec;">inactive clones ...</span>
+<span style="color: #3a81c3;">(</span><span style="color: #3a81c3; font-weight: bold;">define</span> <span style="color: #6c3163; font-weight: bold;">removeURLs</span> <span style="color: #6c3163;">(</span>list<span style="color: #6c3163;">)</span><span style="color: #3a81c3;">)</span> <span style="color: #2aa1ae; background-color: #ecf3ec;">; </span><span style="color: #2aa1ae; background-color: #ecf3ec;">... and theirs fetch-URLs</span>
+<span style="color: #3a81c3;">(</span><span style="color: #3a81c3; font-weight: bold;">define</span> <span style="color: #6c3163; font-weight: bold;">others</span>     <span style="color: #6c3163;">(</span>list<span style="color: #6c3163;">)</span><span style="color: #3a81c3;">)</span> <span style="color: #2aa1ae; background-color: #ecf3ec;">; </span><span style="color: #2aa1ae; background-color: #ecf3ec;">other, non-git-repository items in the checkout cache</span>
+
+<span style="color: #3a81c3;">(</span><span style="color: #3a81c3; font-weight: bold;">for-each</span>
+ <span style="color: #6c3163;">(</span><span style="color: #3a81c3; font-weight: bold;">lambda</span> <span style="color: #2d9574;">(</span>dir<span style="color: #2d9574;">)</span>
+   <span style="color: #2aa1ae; background-color: #ecf3ec;">;; </span><span style="color: #2aa1ae; background-color: #ecf3ec;">(format #t "[DEBUG] dir: ~a\n" dir)</span>
+   <span style="color: #2d9574;">(</span><span style="color: #3a81c3; font-weight: bold;">define</span> <span style="color: #6c3163; font-weight: bold;">dirGit</span> <span style="color: #67b11d;">(</span>format #f <span style="color: #2d9574;">"~a/.git"</span> dir<span style="color: #67b11d;">)</span><span style="color: #2d9574;">)</span>
+   <span style="color: #2d9574;">(</span><span style="color: #3a81c3; font-weight: bold;">if</span> <span style="color: #67b11d;">(</span>access? dirGit F_OK<span style="color: #67b11d;">)</span> <span style="color: #2aa1ae; background-color: #ecf3ec;">;; </span><span style="color: #2aa1ae; background-color: #ecf3ec;">check if file or directory exists</span>
+       <span style="color: #67b11d;">(</span><span style="color: #3a81c3; font-weight: bold;">begin</span>
+         <span style="color: #2aa1ae; background-color: #ecf3ec;">;; </span><span style="color: #2aa1ae; background-color: #ecf3ec;">(format #t "[DEBUG] #t (access? \"~a\" F_OK)\n" dirGit)</span>
+         <span style="color: #b1951d;">(</span><span style="color: #3a81c3; font-weight: bold;">let</span> <span style="color: #3a81c3;">(</span><span style="color: #6c3163;">(</span>dirURL
+                <span style="color: #2d9574;">(</span>car <span style="color: #2aa1ae; background-color: #ecf3ec;">; </span><span style="color: #2aa1ae; background-color: #ecf3ec;">`exec` returns a list of strings. Assume just one item in the list</span>
+                 <span style="color: #887070;">(</span>exec
+                  <span style="color: #3a81c3;">(</span>format
+                   #f
+                   <span style="color: #2d9574;">"git --git-dir=~a/.git remote --verbose | grep fetch | grep --only-matching \"~a\""</span>
+                   dir regexp<span style="color: #3a81c3;">)</span><span style="color: #887070;">)</span><span style="color: #2d9574;">)</span><span style="color: #6c3163;">)</span><span style="color: #3a81c3;">)</span>
+           <span style="color: #2aa1ae; background-color: #ecf3ec;">;; </span><span style="color: #2aa1ae; background-color: #ecf3ec;">(format #t "[DEBUG] dirURL:\n~a\n" (string-join dirURL "\n"))</span>
+           <span style="color: #3a81c3;">(</span><span style="color: #3a81c3; font-weight: bold;">if</span> <span style="color: #6c3163;">(</span>member dirURL allChannelRepos<span style="color: #6c3163;">)</span>
+               <span style="color: #6c3163;">(</span><span style="color: #3a81c3; font-weight: bold;">begin</span>
+                 <span style="color: #2aa1ae; background-color: #ecf3ec;">;; </span><span style="color: #2aa1ae; background-color: #ecf3ec;">(format #t "[DEBUG] #t (member \"~a\" allChannelRepos)\n" dirURL)</span>
+                 <span style="color: #2d9574;">(</span><span style="color: #3a81c3; font-weight: bold;">set!</span> keepDirs <span style="color: #887070;">(</span>append keepDirs <span style="color: #3a81c3;">(</span>list dir<span style="color: #3a81c3;">)</span><span style="color: #887070;">)</span><span style="color: #2d9574;">)</span>
+                 <span style="color: #2d9574;">(</span><span style="color: #3a81c3; font-weight: bold;">set!</span> keepURLs <span style="color: #887070;">(</span>append keepURLs <span style="color: #3a81c3;">(</span>list dirURL<span style="color: #3a81c3;">)</span><span style="color: #887070;">)</span><span style="color: #2d9574;">)</span><span style="color: #6c3163;">)</span>
+               <span style="color: #6c3163;">(</span><span style="color: #3a81c3; font-weight: bold;">begin</span>
+                 <span style="color: #2aa1ae; background-color: #ecf3ec;">;; </span><span style="color: #2aa1ae; background-color: #ecf3ec;">(format #t "[DEBUG] #f (member \"~a\" allChannelRepos)\n" dirURL)</span>
+                 <span style="color: #2d9574;">(</span><span style="color: #3a81c3; font-weight: bold;">set!</span> removeDirs <span style="color: #887070;">(</span>append removeDirs <span style="color: #3a81c3;">(</span>list dir<span style="color: #3a81c3;">)</span><span style="color: #887070;">)</span><span style="color: #2d9574;">)</span>
+                 <span style="color: #2d9574;">(</span><span style="color: #3a81c3; font-weight: bold;">set!</span> removeURLs <span style="color: #887070;">(</span>append removeURLs <span style="color: #3a81c3;">(</span>list dirURL<span style="color: #3a81c3;">)</span><span style="color: #887070;">)</span><span style="color: #2d9574;">)</span><span style="color: #6c3163;">)</span><span style="color: #3a81c3;">)</span><span style="color: #b1951d;">)</span><span style="color: #67b11d;">)</span>
+       <span style="color: #67b11d;">(</span><span style="color: #3a81c3; font-weight: bold;">begin</span>
+         <span style="color: #2aa1ae; background-color: #ecf3ec;">;; </span><span style="color: #2aa1ae; background-color: #ecf3ec;">(format #t "[DEBUG] #f (access? \"~a\" F_OK)\n" dirGit)</span>
+         <span style="color: #b1951d;">(</span><span style="color: #3a81c3; font-weight: bold;">set!</span> others <span style="color: #3a81c3;">(</span>append others <span style="color: #6c3163;">(</span>list dir<span style="color: #6c3163;">)</span><span style="color: #3a81c3;">)</span><span style="color: #b1951d;">)</span><span style="color: #67b11d;">)</span><span style="color: #2d9574;">)</span><span style="color: #6c3163;">)</span>
+ cacheDirs<span style="color: #3a81c3;">)</span>
+
+<span style="color: #2aa1ae; background-color: #ecf3ec;">;; </span><span style="color: #2aa1ae; background-color: #ecf3ec;">`(iota N)` returns a list of numbers (0 ... N-1)</span>
+<span style="color: #3a81c3;">(</span><span style="color: #3a81c3; font-weight: bold;">if</span> <span style="color: #6c3163;">(</span>&gt; <span style="color: #2d9574;">(</span>length removeDirs<span style="color: #2d9574;">)</span> <span style="color: #4e3163;">0</span><span style="color: #6c3163;">)</span>
+    <span style="color: #6c3163;">(</span><span style="color: #3a81c3; font-weight: bold;">begin</span>
+      <span style="color: #2d9574;">(</span>format #t <span style="color: #2d9574;">"### ~a Cached checkouts to delete:\n"</span> <span style="color: #67b11d;">(</span>length removeDirs<span style="color: #67b11d;">)</span><span style="color: #2d9574;">)</span>
+      <span style="color: #2d9574;">(</span><span style="color: #3a81c3; font-weight: bold;">for-each</span>
+       <span style="color: #67b11d;">(</span><span style="color: #3a81c3; font-weight: bold;">lambda</span> <span style="color: #b1951d;">(</span>i<span style="color: #b1951d;">)</span>
+         <span style="color: #b1951d;">(</span><span style="color: #3a81c3; font-weight: bold;">let</span> <span style="color: #3a81c3;">(</span><span style="color: #6c3163;">(</span>removeCheckoutsI <span style="color: #2d9574;">(</span>list-ref removeDirs i<span style="color: #2d9574;">)</span><span style="color: #6c3163;">)</span>
+               <span style="color: #6c3163;">(</span>removeURLsI      <span style="color: #2d9574;">(</span>list-ref removeURLs i<span style="color: #2d9574;">)</span><span style="color: #6c3163;">)</span><span style="color: #3a81c3;">)</span>
+           <span style="color: #3a81c3;">(</span>format #t <span style="color: #2d9574;">"mv ~a{,.deleteMe}  # ~a\n"</span> removeCheckoutsI removeURLsI<span style="color: #3a81c3;">)</span><span style="color: #b1951d;">)</span><span style="color: #67b11d;">)</span>
+       <span style="color: #67b11d;">(</span>iota <span style="color: #b1951d;">(</span>length removeDirs<span style="color: #b1951d;">)</span><span style="color: #67b11d;">)</span><span style="color: #2d9574;">)</span><span style="color: #6c3163;">)</span><span style="color: #3a81c3;">)</span>
+
+<span style="color: #3a81c3;">(</span><span style="color: #3a81c3; font-weight: bold;">if</span> <span style="color: #6c3163;">(</span>&gt; <span style="color: #2d9574;">(</span>length keepDirs<span style="color: #2d9574;">)</span> <span style="color: #4e3163;">0</span><span style="color: #6c3163;">)</span>
+    <span style="color: #6c3163;">(</span><span style="color: #3a81c3; font-weight: bold;">begin</span>
+      <span style="color: #2d9574;">(</span>format #t <span style="color: #2d9574;">"\n### ~a Cached checkouts to keep:\n"</span> <span style="color: #67b11d;">(</span>length keepDirs<span style="color: #67b11d;">)</span><span style="color: #2d9574;">)</span>
+      <span style="color: #2d9574;">(</span><span style="color: #3a81c3; font-weight: bold;">for-each</span>
+       <span style="color: #67b11d;">(</span><span style="color: #3a81c3; font-weight: bold;">lambda</span> <span style="color: #b1951d;">(</span>i<span style="color: #b1951d;">)</span>
+         <span style="color: #b1951d;">(</span><span style="color: #3a81c3; font-weight: bold;">let</span> <span style="color: #3a81c3;">(</span><span style="color: #6c3163;">(</span>keepCheckoutsI <span style="color: #2d9574;">(</span>list-ref keepDirs i<span style="color: #2d9574;">)</span><span style="color: #6c3163;">)</span>
+               <span style="color: #6c3163;">(</span>keepURLsI      <span style="color: #2d9574;">(</span>list-ref keepURLs i<span style="color: #2d9574;">)</span><span style="color: #6c3163;">)</span><span style="color: #3a81c3;">)</span>
+           <span style="color: #3a81c3;">(</span>format #t <span style="color: #2d9574;">"# ~a  # ~a\n"</span> keepCheckoutsI keepURLsI<span style="color: #3a81c3;">)</span><span style="color: #b1951d;">)</span><span style="color: #67b11d;">)</span>
+       <span style="color: #67b11d;">(</span>iota <span style="color: #b1951d;">(</span>length keepDirs<span style="color: #b1951d;">)</span><span style="color: #67b11d;">)</span><span style="color: #2d9574;">)</span><span style="color: #6c3163;">)</span><span style="color: #3a81c3;">)</span>
+
+<span style="color: #3a81c3;">(</span><span style="color: #3a81c3; font-weight: bold;">if</span> <span style="color: #6c3163;">(</span>&gt; <span style="color: #2d9574;">(</span>length cacheNonDirs<span style="color: #2d9574;">)</span> <span style="color: #4e3163;">0</span><span style="color: #6c3163;">)</span>
+    <span style="color: #6c3163;">(</span><span style="color: #3a81c3; font-weight: bold;">begin</span>
+      <span style="color: #2d9574;">(</span>format #t <span style="color: #2d9574;">"\n### ~a Non-directory items in the checkout cache directory:\n"</span> <span style="color: #67b11d;">(</span>length cacheNonDirs<span style="color: #67b11d;">)</span><span style="color: #2d9574;">)</span>
+      <span style="color: #2d9574;">(</span><span style="color: #3a81c3; font-weight: bold;">for-each</span> <span style="color: #67b11d;">(</span><span style="color: #3a81c3; font-weight: bold;">lambda</span> <span style="color: #b1951d;">(</span>elem<span style="color: #b1951d;">)</span> <span style="color: #b1951d;">(</span>format #t <span style="color: #2d9574;">"# ~a\n"</span> elem<span style="color: #b1951d;">)</span><span style="color: #67b11d;">)</span> cacheNonDirs<span style="color: #2d9574;">)</span><span style="color: #6c3163;">)</span><span style="color: #3a81c3;">)</span>
+
+<span style="color: #3a81c3;">(</span><span style="color: #3a81c3; font-weight: bold;">if</span> <span style="color: #6c3163;">(</span>&gt; <span style="color: #2d9574;">(</span>length others<span style="color: #2d9574;">)</span> <span style="color: #4e3163;">0</span><span style="color: #6c3163;">)</span>
+    <span style="color: #6c3163;">(</span><span style="color: #3a81c3; font-weight: bold;">begin</span>
+      <span style="color: #2d9574;">(</span>format #t <span style="color: #2d9574;">"\n### ~a Other items in the checkout cache directory:\n"</span> <span style="color: #67b11d;">(</span>length others<span style="color: #67b11d;">)</span><span style="color: #2d9574;">)</span>
+      <span style="color: #2d9574;">(</span><span style="color: #3a81c3; font-weight: bold;">for-each</span> <span style="color: #67b11d;">(</span><span style="color: #3a81c3; font-weight: bold;">lambda</span> <span style="color: #b1951d;">(</span>elem<span style="color: #b1951d;">)</span> <span style="color: #b1951d;">(</span>format #t <span style="color: #2d9574;">"# ~a\n"</span> elem<span style="color: #b1951d;">)</span><span style="color: #67b11d;">)</span> others<span style="color: #2d9574;">)</span><span style="color: #6c3163;">)</span><span style="color: #3a81c3;">)</span>
+</pre>
+</div>
+<pre class="example" id="orgbe93aa6">
+### 9 Cached checkouts to delete:
+mv /home/bost/.cache/guix/checkouts/zs6zmevqvbzp76b5g35peosmi6a6szehu3rvisbmfxclfwhyyida{,.deleteMe}  # https://gitlab.inria.fr/guix-hpc/guix-past
+mv /home/bost/.cache/guix/checkouts/qrpa3yqjnryavq6ke65ui2wfhxxce6yhkjjljfjwjnzxwrzir2kq{,.deleteMe}  # https://git.sr.ht/~abcdw/rde
+mv /home/bost/.cache/guix/checkouts/lzgohq5qx5m3joiq7hpwhifey5cjhzdjh7ftgqf3zf6yscgpwmha{,.deleteMe}  # file:///home/bost/dev/andrew-rde
+mv /home/bost/.cache/guix/checkouts/xiy6tmf5c47m4mbsgcyscbv54puep4fsa4cxjvakkhvnwv5lhqma{,.deleteMe}  # https://codeberg.org/SystemCrafters/crafted-guix.git
+mv /home/bost/.cache/guix/checkouts/lfimhcs6pzfafrqnk5pkwua2o7xromo7q233lmyeynaqragzj7ya{,.deleteMe}  # file:///home/bost/dev/haskell-guix
+mv /home/bost/.cache/guix/checkouts/q34vpblad6qjkemghxeewwgkxzw6b77mas5mipiiym7cjfph3s2q{,.deleteMe}  # https://gitlab.com/virt-viewer/virt-viewer
+mv /home/bost/.cache/guix/checkouts/63g3ea4meam7lf5mkodnht3ilpw6f2c7ptksrpy4ivkvcmez2voq{,.deleteMe}  # https://gitlab.com/guix-gaming-channels/games.git
+mv /home/bost/.cache/guix/checkouts/xsxs5jlzxqsz5a7r3mygoglnval3uum5umz6jfmiwo3t7ltndu5a{,.deleteMe}  # https://github.com/engstrand-config/home-service-dwl-guile
+mv /home/bost/.cache/guix/checkouts/sbukdbdulb5sf3fmyaj7h2t3g3qd2tvif3p6fuw5rxvmbh5ocrxq{,.deleteMe}  # file:///home/bost/dev/guix-packages
+
+### 4 Cached checkouts to keep:
+# /home/bost/.cache/guix/checkouts/l74zueb3lgylhgxnuzx3d5fzraztxvzu2s4466wlqqvmz7hdct3a  # https://gitlab.com/nonguix/nonguix
+# /home/bost/.cache/guix/checkouts/nvfgx2qw6oh46gsdlp4tqi7dpxqecwz5rxx3dako5hgvxm3t4emq  # https://github.com/Bost/haskell-guix
+# /home/bost/.cache/guix/checkouts/pjmkglp4t7znuugeurpurzikxq3tnlaywmisyr27shj7apsnalwq  # https://git.savannah.gnu.org/git/guix.git
+# /home/bost/.cache/guix/checkouts/ssrrbehkhpdmb76h67z3j7zsfqgh2uuku2p5fpb75tndxp3uf4qa  # https://github.com/Bost/guix-packages
+
+### 1 Non-directory items in the checkout cache directory:
+# /home/bost/.cache/guix/checkouts/last-expiry-cleanup
+
+### 1 Other items in the checkout cache directory:
+# /home/bost/.cache/guix/checkouts/fooo
+</pre>
+
+<p class="footpara">
+Compare the results
+</p>
+<div class="org-src-container">
+<pre class="src src-fish"><span style="color: #3a81c3;">source</span> <span style="color: #2d9574;">"./cleanup-checkout-cache.fish"</span> &gt; <span style="color: #3a81c3;">fish</span>.log
+<span style="color: #3a81c3;">guile</span> ./cleanup-checkout-cache.scm<span style="color: #4e3163;"> &gt; guile.log</span>
+<span style="color: #4e3163;">diff</span> --report-identical-files --brief --side-by-side <span style="color: #3a81c3;">fish</span>.log guile.log
+</pre>
+</div>
+
+<pre class="example">
+Files fish.log and guile.log are identical
+</pre></div></div>
+
+
+</div>
+</div></div>
+<div id="postamble" class="status">
+<p class="date">Date: December 12, 2023</p>
+<p class="author">Author: Rostislav Svoboda</p>
+<p class="date">Created: 2023-12-12 Tue 14:33</p>
+<p class="validation"><a href="https://validator.w3.org/check?uri=referer">Validate</a></p>
+</div>
+</body>
+</html>
