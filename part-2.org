@@ -1,0 +1,245 @@
+#+TITLE: Iterative, real-world script development, Part 2 - the AI.
+#+AUTHOR: Rostislav Svoboda
+#+DATE: {{{time(%B %d\, %Y)}}}
+#+OPTIONS: toc:nil
+# #+LaTeX_CLASS: article
+# #+LaTeX_CLASS_OPTIONS: [a4paper, 11pt]
+
+#+BEGIN_EXPORT html
+<style>
+blockquote {
+    font-style: italic;
+}
+</style>
+#+END_EXPORT
+
+Let's convert the Fish shell script =cleanup-checkout-cache.fish= from the
+previous blog to Guile Scheme in a straight manner, basically by /"putting
+parenthesis around the Fish code"/. If you're only interested in the final
+result, proceed below[fn:scheme1].
+
+Let's fire up our =BananaCodeJoe= alter-ego aaand... no. That sounds like too
+much manual labor. What about some of the latest fashion approach, you know,
+the stuff cool kids use. So yeah, let's fire up our ChatGPT alter-ego
+instead. Set =model: Plugins Beta gpt4=, =plugin: CoderPad= aaand:
+
+* Upload the =cleanup-checkout-cache.fish= and enter the prompt:
+#+BEGIN_SRC markdown :exports code
+  Please analyze the Fish-shell script I'm uploading you as attachment and convert
+  it to Guile Scheme according to the rules and guidelines I'm going to send you
+  in the next step.
+
+  We will proceed with the conversion step-by-step.
+
+  After the step-by-step conversion is done, please combine all the steps
+  together, convert the whole Fish script and provide me a download link to the
+  resulting Guile Scheme script file.
+#+END_SRC
+
+... and it doesn't recognize attachments. Ugh.
+
+Switching to plain ChatGPT (GPT-4 (All Tools) Gpt4), uploading the script
+again and repeating the prompt input and... and that worked! Ugh.
+
+Here we read the response to make sure our alter-ego understands the task
+ahead, and (assuming it does):
+
+* Enter the prompt:
+#+BEGIN_SRC markdown :exports code
+  The conversion rules and guidelines are:
+
+  - The conversion result consists of the following blocks:
+  ```
+    [Guile Scheme hashbang]
+    [Series of comments explaining script's purpose and functionality - the docstring.]
+    [Some Guile Scheme snippet or snippets]
+    [Converted code]
+  ```
+
+  - The generated Guile code must follow the same logic and have the same
+    structure as the origin.
+
+  - Keep the generated Guile code simple and well readable. Avoid nesting
+    s-expressions if nesting is not present in the origin. Don't do any
+    "smart" conversion.
+
+  - Make sure all strings are properly surrounded with double quotes.
+
+  - Make sure all generated s-expressions are syntactically valid!
+
+  - Conversion of regular expressions:
+    + Escape only the backslashes by doubling them (`\` → `\\`). Do not escape
+      other characters.
+    + Keep the structure of the regular expression unchanged.
+
+  - Convert Fish-shell hashbang:
+  ```
+  #!/usr/bin/env fish
+  ```
+    to Guile Scheme hashbang:
+  ```
+  #!/usr/bin/env guile
+  !#
+  ```
+
+  - After the docstring append this Guile Scheme snippet:
+  ```scheme
+  (use-modules
+   ;; provides read-line
+   (ice-9 rdelim)
+   ;; provides open-input-pipe
+   (ice-9 popen))
+
+  (define (read-all-strings port)
+    "Return a list of all lines of text from the PORT.
+  Returns a list of strings."
+    (let loop ((res '())
+               (str (read-line port))) ; read-line from (ice-9 rdelim)
+      (if (and str (not (eof-object? str)))
+          (loop (append res (list str))
+                (read-line port))
+          res)))
+
+  (define (exec command-string)
+    "Run the shell COMMAND using ‘/bin/sh -c’ with ‘OPEN_READ’ mode, ie. to read
+  from the subprocess. Wait for the command to terminate and return a list of strings
+  containing its output."
+    ;; (format #t "[DEBUG] command-string: ~a\n" command-string)
+    (let* ((port (open-input-pipe command-string)) ; open-input-pipe from (ice-9 popen)
+           ;; `read-all-strings' must be called before `close-pipe'.
+           (results (read-all-strings port)))
+      (close-pipe port)  ;; the return code of the command execution is ignored
+      results))
+  ```
+
+  - If there are any Fish-shell commands commented out, convert them too.
+
+  - Whenever applicable prefer constructing strings using `(format ...)` instead
+    of using `string-append` in the conversion result.
+
+  - `exec` returns a list of strings, so for better readability of the DEBUG outputs use `string-join`. E.g. convert:
+  ```fish
+  # printf "[DEBUG] <variable>:\n$<variable>\n"
+  ```
+    to:
+  ```scheme
+  ;; (format #t "[DEBUG] <variable>:\n~a\n" (string-join <variable> "\n"))
+  ```
+
+  - Simple conversion rules:
+    |  Fish shell code                  | Guile scheme code                                      |
+    |--------------------------------------------------------------------------------------------|
+    | `set <variable> <value>`          | `(define <variable> <value>)`                          |
+    | `set --append <variable> <value>` | `(set! <variable> (append <variable> (list <value>)))` |
+    | `$<variable>[$i]`                 | `(list-ref <variable> i)`                              |
+    | `test -n "$<variable>"`           | `(> (length <variable>) 0)`                            |
+    | `test -d $<variable>`             | `(access? <variable> F_OK)`                            |
+
+  - Conversion of an empty Fish variable:
+    |  Fish shell code                  | Guile scheme code                                      |
+    |--------------------------------------------------------------------------------------------|
+    | `set <variable> # ...`            | `(define <variable> (list)) ; ...`                     |
+
+  - Fish-shell uses parentheses for operating system command substitution:
+    |  Fish shell code                 | Guile scheme code                                       |
+    |--------------------------------------------------------------------------------------------|
+    | `set <variable> (<OS-command>)`  | `(define <variable> (exec "<OS-command>"))`             |
+
+    The `exec` is a Guile Scheme function accepting some command-string as a
+    parameter. Here:
+    + The `"<OS-command>"` in the conversion result is built by printing to string:
+  ```scheme
+  (format #f <guile-format-string> <variable0> ... <variableN>)`
+  ```
+    + Make sure the regexp used for `grep` will be surrounded by properly escaped
+      double quotes in the conversion result. E.g.: `grep ... \"~a\"`
+
+    - `(define <variable> <value>)` cannot be used inside `(begin ...)`. Use
+      `(let* ((<variable> <value>)) ...)` instead.
+
+    - Conversion of the loops. Make sure you understand the specific actions
+      performed within the loops and how other commands should be translated.
+      Then:
+  ```fish
+  for <index-variable> in <variable>
+      ...
+  end
+  ```
+      corresponds to:
+  ```scheme
+  (for-each
+   (lambda (<index-variable>)
+     ...)
+   <variable>)
+  ```
+#+END_SRC
+
+... and keep on iterating the prompt again and again... and again and
+again... and again and again because even if our alter-ego is rather smart,
+it:
+- Sometimes forgets what exactly the Fish shell scripts contains.
+- Escapes other than the backslashes, despite being explicitly instructed not
+  to do so.
+- Can correct its mistakes but a couple of steps later starts to make the same
+  mistakes again.
+- Occasionally freezes
+- Occasionally freezes at the very last step, while generating the download
+  link. Grrr :-(
+- etc.
+
+* Summary and final thoughts
+
+As of now(!), December 2023:
+
+- Using ChatGPT is about "trying to learn how to teach by
+  trial-and-error". It's about learning how to craft prompts.
+
+- You can easily spend countless hours on improving the conversion
+  instructions and you never get the consistency of good results.
+
+- ChatGPT really likes encouraging and positive feedback responses, e.g.:
+  Nice, really great, I'm happy, flawless!, awesome!, you're great, etc. or
+  even more verbose.
+  
+- Sometimes you reach the valley of the local optimization minimum where you
+  just can't get it back working properly. In such a situation, it's just
+  better to abandon the current dialogue and restart the whole conversation
+  from scratch.
+
+Ideas not explored and investigated:
+- [[https://platform.openai.com/finetune][Fine-tuning]], (model) customization and related concepts.
+- Since ChatGPT uses Python for the conversion a better idea might be to write
+  the your scripts in Python instead of the language of your choice (the
+  Fish-shell in our case) and then try to convert it to Guile Scheme.
+- Is it possible to edit the Python code used for code generation?  Since the
+  Python code which ChatGPT creates for the conversion is provided, (open up
+  the "Used Python" dropdown box) it may be more efficient to edit the Python
+  code manually, either by instructing ChatGPT:
+  #+BEGIN_SRC markdown :exports code
+    In the Python code you generated. Change this-to-that and run again.
+  #+END_SRC
+  or asking ChatGPT to create a download link for the Python code and then
+  editing and developing it yourself without involving ChatGPT anymore.
+
+In the next blog, we'll analyze and properly implement the script using higher
+order functions and the functional programming paradigm. This will enhance
+both the script's functionality and efficiency.
+
+In the next blog, we will delve into a detailed analysis and refined
+implementation of the script, employing higher order functions and the
+functional programming paradigm. This approach aims to enhance the script's
+modularity and reusability, paving the way for potential integration into
+... well wherever you need it ;-)
+
+[fn:scheme1] The final result (redacted). And as usual - read and
+understand the code before you run it.
+#+INCLUDE: "./cleanup-checkout-cache.scm" src scheme
+#+BEGIN_SRC fish :exports results :results replace output
+guile ./cleanup-checkout-cache.scm
+#+END_SRC
+Compare the results
+#+BEGIN_SRC fish :exports both :results replace output
+source "./cleanup-checkout-cache.fish" > fish.log
+guile ./cleanup-checkout-cache.scm > guile.log
+diff --report-identical-files --brief --side-by-side fish.log guile.log
+#+END_SRC

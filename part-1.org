@@ -1,0 +1,216 @@
+#+TITLE: Iterative, real-world script development, Part 1 - Quick'n'Dirty.
+#+AUTHOR: Rostislav Svoboda
+#+DATE: {{{time(%B %d\, %Y)}}}
+#+OPTIONS: toc:nil
+# #+LaTeX_CLASS: article
+# #+LaTeX_CLASS_OPTIONS: [a4paper, 11pt]
+
+#+BEGIN_EXPORT html
+<style>
+blockquote {
+    font-style: italic;
+}
+</style>
+#+END_EXPORT
+
+While reading the [[https://guix.gnu.org/manual/devel/en/guix.html][GNU Guix Reference Manual]], you may have come across this [[https://guix.gnu.org/manual/devel/en/guix.html#index-Git_002c-using-the-latest-commit][paragraph]]:
+
+#+BEGIN_QUOTE
+Checkouts are kept in a cache under =~/.cache/guix/checkouts= to speed up
+consecutive accesses to the same repository. You may want to clean it up once in
+a while to save disk space.
+#+END_QUOTE
+
+After looking at your checkout cache, you might find the following:
+
+#+BEGIN_SRC fish :exports both :results replace output
+ls -d1 ~/.cache/guix/checkouts/* | wc -l # --directory, 1 file per line; then count lines
+du -sh ~/.cache/guix/checkouts           # get size; --summarize --human-readable
+#+END_SRC
+
+#+RESULTS:
+: 15
+: 628M	/home/bost/.cache/guix/checkouts
+
+This shows that some disk space could be saved by cleaning the cache. As the
+saying goes, "If you've got nothing better to do, go and clean up." However,
+cleaning is inherently tedious and boring. It doesn't advance your
+progress. And as we all learned in school, nothing stays clean forever due to
+the ever-increasing entropy.
+
+Wouldn't a little automation script for cleaning up the checkout cache be handy?
+
+* Quick Detour: The Guix-HPC Workshop
+
+A couple of weeks ago, a Guix-HPC workshop was organized in Montpellier,
+France. If you attended, you might have seen a group of people, presumably
+scientists with non-computer science backgrounds, attending Ludo's
+[[https://hpc.guix.info/events/2023/workshop/program/#how-to-get-started-using-guix][/"Get
+Started"/]] tutorial. A smaller group, mostly computer geeks, attended Simon's
+[[https://hpc.guix.info/events/2023/workshop/program/#how-to-make-advanced-packages][/"Advanced"/]]
+tutorial, basically concluded with:
+
+#+BEGIN_QUOTE
+Packaging is not easy -- Simon Tournier
+#+END_QUOTE
+
+Apparently the non-CS folks need help with the initial steps, such as
+introductions, explanations. After all Guix, as well as Nix, are both rather
+*different* from anything we've seen before.
+
+One of the challenges in using Guix might be its reliance on the Guile Scheme
+language. While Guile is excellent for fine crafting, which includes configuring,
+extending, and customizing your operating system, it's not necessarily the
+best for quick-and-dirty scripting. Yes, it's possible [fn:ex1:See
+[[https://www.gnu.org/software/guile/manual/html_node/Scripting-Examples.html][scripting
+examples]] from The Guile Reference Manual.][fn:ex2:See
+[[https://archive.softwareheritage.org/browse/directory/179f060aabd198e758b52058b417fee1a7b8962c/?origin_url=https://gitlab.com/zimoun/advanced-packages-2023&path=examples/scripts&revision=e2b1a61486e8b7d75200231cf645b5442373f048&snapshot=909e690430f6d869f78c6b56abc0e8cbb895ea8d][scripting
+examples]] from Simon's
+[[https://hpc.guix.info/events/2023/workshop/program/#how-to-make-advanced-packages][/"How
+to make advanced packages"/]] tutorial.], but there are better tools for
+rapidly piecing scripts together.
+
+
+* The Script
+
+If quickly writing Guile scripts is demanding, why not try to develop a
+prototype iteratively[fn:lp1] in a simpler environment? An environment with an
+easy-to-read scripting language would be ideal. One such environment is the
+[[https://fishshell.com/][Fish shell]], which features a scripting language similar to Python.
+
+Returning to our original goal of writing a script for cleaning the checkout
+cache: Your Guix system might use fewer channels than the number of items in
+the checkout cache:
+
+#+BEGIN_SRC fish :exports both :results replace output
+guix system describe | grep repository
+#+END_SRC
+
+#+RESULTS:
+:       repository URL: https://github.com/Bost/haskell-guix
+:       repository URL: https://github.com/Bost/guix-packages
+:       repository URL: https://git.savannah.gnu.org/git/guix.git
+:       repository URL: https://gitlab.com/nonguix/nonguix
+
+So, let's take a look at the items in the checkout cache directory:
+
+#+BEGIN_SRC fish :exports both :results replace output
+# -d, --directory            list directories themselves, not their contents
+# -1                         list one file per line
+ls -d1 ~/.cache/guix/checkouts/*
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+/home/bost/.cache/guix/checkouts/63g3ea4meam7lf5mkodnht3ilpw6f2c7ptksrpy4ivkvcmez2voq
+/home/bost/.cache/guix/checkouts/fooo
+/home/bost/.cache/guix/checkouts/l74zueb3lgylhgxnuzx3d5fzraztxvzu2s4466wlqqvmz7hdct3a
+/home/bost/.cache/guix/checkouts/last-expiry-cleanup
+/home/bost/.cache/guix/checkouts/lfimhcs6pzfafrqnk5pkwua2o7xromo7q233lmyeynaqragzj7ya
+/home/bost/.cache/guix/checkouts/lzgohq5qx5m3joiq7hpwhifey5cjhzdjh7ftgqf3zf6yscgpwmha
+/home/bost/.cache/guix/checkouts/nvfgx2qw6oh46gsdlp4tqi7dpxqecwz5rxx3dako5hgvxm3t4emq
+/home/bost/.cache/guix/checkouts/pjmkglp4t7znuugeurpurzikxq3tnlaywmisyr27shj7apsnalwq
+/home/bost/.cache/guix/checkouts/q34vpblad6qjkemghxeewwgkxzw6b77mas5mipiiym7cjfph3s2q
+/home/bost/.cache/guix/checkouts/qrpa3yqjnryavq6ke65ui2wfhxxce6yhkjjljfjwjnzxwrzir2kq
+/home/bost/.cache/guix/checkouts/sbukdbdulb5sf3fmyaj7h2t3g3qd2tvif3p6fuw5rxvmbh5ocrxq
+/home/bost/.cache/guix/checkouts/ssrrbehkhpdmb76h67z3j7zsfqgh2uuku2p5fpb75tndxp3uf4qa
+/home/bost/.cache/guix/checkouts/xiy6tmf5c47m4mbsgcyscbv54puep4fsa4cxjvakkhvnwv5lhqma
+/home/bost/.cache/guix/checkouts/xsxs5jlzxqsz5a7r3mygoglnval3uum5umz6jfmiwo3t7ltndu5a
+/home/bost/.cache/guix/checkouts/zs6zmevqvbzp76b5g35peosmi6a6szehu3rvisbmfxclfwhyyida
+#+end_example
+
+
+... that's a plenty of checksums :headache:. This means we need to open each
+directory in the checkout cache to see its contents and determine if it can be
+deleted. This would have to be done manually, one by one :-(
+
+If we start with the first one, we find that it is...
+
+#+BEGIN_SRC fish :exports both :results replace output
+# -A, --almost-all           do not list implied . and ..
+# -1                         list one file per line
+ls -A1 /home/bost/.cache/guix/checkouts/63g3ea4meam7lf5mkodnht3ilpw6f2c7ptksrpy4ivkvcmez2voq
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+COPYING
+.dir-locals.el
+games
+.git
+.guix-authorizations
+.guix-channel
+hacking.org
+mono-mdoc-timestamping.patch
+news.txt
+readme.org
+#+end_example
+
+... a Git repository. Voilà! This means we can identify its origin:
+
+#+BEGIN_SRC fish :exports both :results replace output
+set checkout /home/bost/.cache/guix/checkouts/63g3ea4meam7lf5mkodnht3ilpw6f2c7ptksrpy4ivkvcmez2voq
+git --git-dir=$checkout/.git remote --verbose | grep fetch
+#+END_SRC
+
+#+RESULTS:
+: origin	https://gitlab.com/guix-gaming-channels/games.git (fetch)
+
+And then compare it to see if it is one of the channel repositories:
+
+#+BEGIN_SRC fish :exports both :results replace output
+set rePattern "\(https\|http\|file\)\?://[^ ]\+" # URL regexp pattern
+# printf "[DEBUG] rePattern:\n%s\n" $rePattern
+set checkout /home/bost/.cache/guix/checkouts/63g3ea4meam7lf5mkodnht3ilpw6f2c7ptksrpy4ivkvcmez2voq
+set checkoutURL (git --git-dir=$checkout/.git remote --verbose | grep fetch | grep -o $rePattern)
+# printf "[DEBUG] repo:\n%s\n" $repo
+set checkoutCache (guix system describe | grep repository | grep -o $rePattern)
+# printf "[DEBUG] checkoutCache:\n%s\n" $checkoutCache
+printf "Does my Guix system run code from... ?\n"
+printf "%s  %s\n" (contains $repo $checkoutCache && echo "Yes" || echo "No ") $checkoutURL
+#+END_SRC
+
+#+RESULTS:
+: Does my Guix system run code from... ?
+: No   https://gitlab.com/guix-gaming-channels/games.git
+
+Okay. Now, let's cobble all the pieces together, implementing multiple
+improvements, strongly(!) preferring readability over elegance, etc.:
+
+#+INCLUDE: "./cleanup-checkout-cache.fish" src fish
+#+BEGIN_SRC fish :exports results :results replace output
+source "./cleanup-checkout-cache.fish"
+#+END_SRC
+
+It wasn't too complicated, although I admit it took me quite some time to work
+it out.  Here's a breakdown of the script's key points:
+
+1. The script input is:
+   - The checkout cache directory =~/.cache/guix/checkouts=, and
+   - Information extractable from =guix system describe=.
+2. The script processes information using:
+   - Utilities provided by the operating system: =grep=, =git=, =find=, =guix=, etc.
+   - Command composition via the pipe operator '|'.
+   - Iteration over arrays and sequences (think lists).
+   - Repeated tests against a predicate: =contains $checkoutURL $allChannelRepos=.
+   - Branching based on the =contains ...= test's results.
+   - Sorting the results into distinct containers.
+3. The script outputs a list of shell commands with additional information for
+   verifying correctness. However, this aspect "is left as an exercise for the
+   reader".
+
+In upcoming blog posts, we will address some of these points and reimplement
+the script in Guile Scheme. This will allow for better integration with the
+Guix operating system.
+
+[fn:lp1] The sequences:
+#+begin_example
+some commands
+#+end_example
+
+#+begin_example
+command results
+#+end_example
+are examples of using [[https://en.wikipedia.org/wiki/Literate_programming][literate programming]] techniques. Some strong /literate
+programming/-fu was presented at the workshop by Marek Felšöci in the
+[[https://hpc.guix.info/events/2023/workshop/program/#how-to-use-org-mode-and-guix-to-build-a-reproducible-experimental-study][/"Reproducible studies in Org mode"/]] tutorial.
