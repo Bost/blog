@@ -1,0 +1,77 @@
+#+TITLE: N2G
+#+AUTHOR: Rostislav Svoboda
+#+DATE: {{{time(%B %d\, %Y)}}}
+#+OPTIONS: toc:nil
+#+LaTeX_CLASS: article
+#+LaTeX_CLASS_OPTIONS: [a4paper, 11pt]
+
+# $\mathbb{N}$ symbol for natural numbers
+
+* Normalizing
+- Define:
+  + lists of packages $N$ and $G$ available for Nix and Guix.
+  + functions $f_N$ and $f_G$ for normalizing package names for Nix and Guix.
+
+- Normalize the package names of both lists $N$, $G$ and turn the normalized
+  lists into Sets:
+  $$ N_{nrm} = \Set{ f_N(N) } $$
+  $$ G_{nrm} = \Set{ f_G(G) } $$
+
+- Find the intersection $I$ of the sets $N_n$ and $G_n$ (omitting the
+  subscript $_{nrm}$ at $I$):
+  $$ I = N_{nrm} \cap G_{nrm} $$
+  The intersection contains normalized names of packages existing in both
+  operating systems.
+
+* Ordering & package complexity
+- Define ordering relations $\leq_N$ and $\leq_G$ for package definition
+  complexity for Nix and Guix.
+  The more complex a package definition is the higher complexity index the it
+  has.
+
+- Order the intersection or normalized names $I$ by $\leq_N$ and $\leq_G$:
+  $$ I_{\leq_N} = (I, \leq_N) $$
+  $$ I_{\leq_G} = (I, \leq_G) $$
+  Every item of the intersection $p \in I$ is assigned two indexes
+  corresponding to its positions in the Ordered Sets $I_{\leq_N}$,
+  $I_{\leq_G}$, i.e.:
+  #  TODO rename p_{ciN} to c_{iN} - the 'p' for package is not needed
+  + $\forall p_N \in I : p_{ciN}$, i.e. every package existing in both OS's
+    has some *basic* complexity level $p_{ciN}$ in Nix where $i \in \{0,1,
+    ... \}$.
+  + $\forall p_G \in I : p_{ciG}$ i.e. every package existing in both OS's has
+    some *basic* complexity level $p_{ciG}$ in Guix where $i \in \{0,1,
+    ... \}$.
+  However the basic complexity levels in Nix and Guix are independent from
+  each other. I.e. they must be further *normalized*. I.e. some mapping
+  between them (e.g. grouping of the basic levels) must be defined so that the
+  normalized complexity levels correspond to each other.
+  # TODO for normalized complexities use $\bar{c}$ or $\vec{c}$
+
+- For every package $p \in I$ compute complexity distance
+  $$ d_p = \|p_{cN} - p_{cG}\| $$
+  where
+  $$ p_{cN} \in I_{\leq_N} $$
+  $$ p_{cG} \in I_{\leq_G} $$
+
+- For every level of complexity, select packages from $I$ as follows:
+  + For $p_{c_0}$ - packages with complexity level 0:
+    $$ I_{c_0d_0} = \{ p_{c_0} \in I : d_p = 0\} $$
+  + For $p_{c_1}$ - packages with complexity level 1:
+    $$ I_{c_1d_0} = \{ p_{c_1} \in I : d_p = 0\} $$
+  + ...
+  + For $p_{c_n}$ - packages with complexity level N:
+    $$ I_{c_nd_0} = \{ p_{c_N} \in I : d_p = 0\} $$
+  I.e. the complexity distance is 0 for every complexity level
+
+* Conversion
+- Convert the $I_{c_0d_0}, I_{c_1d_0}, ... I_{c_nd_0}$ packages.
+  This transformation / translation should be relatively simple.
+- Convert the packages which definitions complexity significantly differs
+  between the operating systems.
+  + Simple on Nix (low $_{c}$ index), complex on Guix (high $_{c}$ index)
+  + Complex on Nix (high $_{c}$ index), simple on Guix (low $_{c}$ index)
+
+# ** NN training
+# - find, i.e. ask which is the appropriate NN type?
+# - split to train and test data.
