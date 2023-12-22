@@ -4,74 +4,171 @@
 #+OPTIONS: toc:nil
 #+LaTeX_CLASS: article
 #+LaTeX_CLASS_OPTIONS: [a4paper, 11pt]
+#+LATEX_HEADER: \usepackage{amsmath}
+#+HTML_HEAD: <link rel="stylesheet" type="text/css" href="style.css" />
+#+HTML_HEAD_EXTRA: <style> body { /* some ad-hoc css styling */ } </style>
 
-# $\mathbb{N}$ symbol for natural numbers
+# $ \mathbb{N} $ symbol for natural numbers
+# Multi-line page-centered formula
+# \begin{align*}
+# \end{align*}
 
-* Normalizing
-- Define:
-  + lists of packages $N$ and $G$ available for Nix and Guix.
-  + functions $f_N$ and $f_G$ for normalizing package names for Nix and Guix.
+* Normalizing and Commonalities
+Define: \\
+- Sets of package names $N$, $G$ of packages available for Nix and Guix:
+      \begin{align*}
+          N &= \{p_1 ,p_2, \dots p_m\} \subseteq \Sigma^* \\
+          G &= \{p_1 ,p_2, \dots p_n\} \subseteq \Sigma^*
+      \end{align*}
+- Functions for normalizing package names for Nix and Guix with signatures:
+      \begin{align*}
+          f_{pN} : N \rightarrow \Sigma^* \\
+          f_{pG} : G \rightarrow \Sigma^*
+      \end{align*}
+  defined as
+  # Normalize the package names of both lists $N$, $G$ and turn the normalized
+  # lists into Sets:
+      \begin{align*}
+           \forall n \in N, f_{nN}(n) &= TODO \\
+           \forall g \in G, f_{nG}(g) &= TODO \\
+      \end{align*}
+  and the domains of $f_{pN}$, $f_{pG}$ are sets of normalized strings
+      \begin{align*}
+          N' &= \{ f_{pN}(n) \mid n \in N \} \\
+          G' &= \{ f_{pG}(g) \mid g \in G \}
+      \end{align*}
 
-- Normalize the package names of both lists $N$, $G$ and turn the normalized
-  lists into Sets:
-  $$ N_{nrm} = \Set{ f_N(N) } $$
-  $$ G_{nrm} = \Set{ f_G(G) } $$
+- The intersection $P$ (omitting the superscript $'$ at $P$):
+      \begin{align*}
+          P = N' \cap G'
+      \end{align*}
+  is a set of normalized names of packages available in both operating systems.
+  # Cardinality invariant : $|P| \leq |N'| \land |P| \leq |G'|$
 
-- Find the intersection $I$ of the sets $N_n$ and $G_n$ (omitting the
-  subscript $_{nrm}$ at $I$):
-  $$ I = N_{nrm} \cap G_{nrm} $$
-  The intersection contains normalized names of packages existing in both
-  operating systems.
+*  Package complexity and Ordering
+Define: \\
+- Function for computing package definition complexity in Nix and Guix with
+  signatures:
+      \begin{align*}
+          f_{cN} : P \rightarrow \mathbb{N} \\
+          f_{cG} : P \rightarrow \mathbb{N}
+      \end{align*}
+  defined as "The more complex a package definition is the higher complexity
+  level the it has." \\
+      \begin{align*}
+          \forall p\in P, f_{cN}(p) = TODO \\
+          \forall p\in P, f_{cG}(p) = TODO
+      \end{align*}
+  and the domains of $f_{cN}$, $f_{cG}$ are sets of complexities
+      \begin{align*}
+           C_{N} = \{ f_{cN}(p) \mid p \in P \} &= \{0, \ldots, n_{N}\} \\
+           C_{G} = \{ f_{cG}(p) \mid p \in P \} &= \{0, \ldots, m_{G}\}
+      \end{align*}
 
-* Ordering & package complexity
-- Define ordering relations $\leq_N$ and $\leq_G$ for package definition
-  complexity for Nix and Guix.
-  The more complex a package definition is the higher complexity index the it
-  has.
+However the basic complexity levels in Nix $C_{N}$ and Guix $C_{G}$ have
+(probably) different cardinalities $n_N \neq m_G$, since they are independent
+from each other and must be further normalized. I.e. some mapping (e.g. grouping
+of the basic levels) must be defined so that the normalized complexity levels
+correspond to each other. \\
+It will be probably a surjective mapping (i.e. an epimorphism)
+$\twoheadrightarrow$ (since all complexity levels of $C_{G}$ must be covered)
+\\
+For that purpose define
+- Normalization domain $C = C_{G}$
+- Normalization functions with signatures
+      \begin{align*}
+         f_{nN} : C_{N} \rightarrow C \\
+         f_{nG} : C_{G} \rightarrow C
+      \end{align*}
+  I.e.
+  # \rightarrowtail \!\! \twoheadrightarrow
+  # \leftrightarrow
+      \begin{align*}
+         f_{nN} : C_{N} \twoheadrightarrow C_{G} \\
+         f_{nG} : C_{G} \rightarrowtail C_{G}
+      \end{align*}
+  defined as
+      \begin{align*}
+         \forall c_{N} \in C_{N}, f_{nN}(c_{N}) &= TODO \\
+         \forall c_{G} \in C_{G}, f_{nG}(c_{G}) &= \mathrm{id}(c_{G}) = c_{G}
+      \end{align*}
+  and the domains of $f_{nN}$, $f_{nG}$ are sets
+      \begin{align*}
+          C = \{f_{nN}(c_{N}) &\mid c_{N} \in C_{N} \} = C_{G} \\
+          C = \{f_{nG}(c_{G}) &\mid c_{G} \in C_{G} \} = C_{G}
+      \end{align*}
 
-- Order the intersection or normalized names $I$ by $\leq_N$ and $\leq_G$:
-  $$ I_{\leq_N} = (I, \leq_N) $$
-  $$ I_{\leq_G} = (I, \leq_G) $$
-  Every item of the intersection $p \in I$ is assigned two indexes
-  corresponding to its positions in the Ordered Sets $I_{\leq_N}$,
-  $I_{\leq_G}$, i.e.:
-  #  TODO rename p_{ciN} to c_{iN} - the 'p' for package is not needed
-  + $\forall p_N \in I : p_{ciN}$, i.e. every package existing in both OS's
-    has some *basic* complexity level $p_{ciN}$ in Nix where $i \in \{0,1,
-    ... \}$.
-  + $\forall p_G \in I : p_{ciG}$ i.e. every package existing in both OS's has
-    some *basic* complexity level $p_{ciG}$ in Guix where $i \in \{0,1,
-    ... \}$.
-  However the basic complexity levels in Nix and Guix are independent from
-  each other. I.e. they must be further *normalized*. I.e. some mapping
-  between them (e.g. grouping of the basic levels) must be defined so that the
-  normalized complexity levels correspond to each other.
-  # TODO for normalized complexities use $\bar{c}$ or $\vec{c}$
+# TODO for normalized complexities use $\bar{c}$ or $\vec{c}$
 
-- For every package $p \in I$ compute complexity distance
-  $$ d_p = \|p_{cN} - p_{cG}\| $$
-  where
-  $$ p_{cN} \in I_{\leq_N} $$
-  $$ p_{cG} \in I_{\leq_G} $$
+- The complexity normalization enables us to compute complexity distance for
+  every package $p \in P$ compute complexity distance
+      \begin{align*}
+         f_{d} : P \rightarrow \mathbb{N} \\
+      \end{align*}
+  where $f_{d}$ is defined
+      \begin{align*}
+           \forall p \in P, f_{d}(p) = \|f_{nN}(p) - f_{nG}(p)\| \\
+      \end{align*}
+  and the domain of $f_{d}$ is a set of distances
+      \begin{align*}
+           D = \{ f_{d}(p) \mid p \in P \} = \{ 0 \dots n\}
+      \end{align*}
+  where $n$ is $\max(n_{N}, m_{G})$.
+  In fact the $n_{N}$, $m_{G}$
 
-- For every level of complexity, select packages from $I$ as follows:
-  + For $p_{c_0}$ - packages with complexity level 0:
-    $$ I_{c_0d_0} = \{ p_{c_0} \in I : d_p = 0\} $$
-  + For $p_{c_1}$ - packages with complexity level 1:
-    $$ I_{c_1d_0} = \{ p_{c_1} \in I : d_p = 0\} $$
-  + ...
-  + For $p_{c_n}$ - packages with complexity level N:
-    $$ I_{c_nd_0} = \{ p_{c_N} \in I : d_p = 0\} $$
-  I.e. the complexity distance is 0 for every complexity level
+- For every level of complexity $c_i \in C = \{0 \ldots n\}$, select packages
+  from $P$ for which
+      \begin{align*}
+          f_{d}(p_{c_i}) = 0
+      \end{align*}
+  For packages with complexity level $0 \dots n$:
+      \begin{gather*}
+          P_{c_1d_0} = \{ p_{c_1} \in P \mid f_{d}(p_{c_1}) = 0\} \\
+          \vdots \\
+          P_{c_nd_0} = \{ p_{c_n} \in P \mid f_{d}(p_{c_n}) = 0\}
+      \end{gather*}
+
+
+
+I.e. the complexity distance is 0 for every complexity level
 
 * Conversion
-- Convert the $I_{c_0d_0}, I_{c_1d_0}, ... I_{c_nd_0}$ packages.
+- Convert the $P_{c_1d_0} \dots P_{c_nd_0}$ packages.
   This transformation / translation should be relatively simple.
 - Convert the packages which definitions complexity significantly differs
   between the operating systems.
-  + Simple on Nix (low $_{c}$ index), complex on Guix (high $_{c}$ index)
-  + Complex on Nix (high $_{c}$ index), simple on Guix (low $_{c}$ index)
+  + Simple on Nix (low $_{c}$ level), complex on Guix (high $_{c}$ level)
+  + Complex on Nix (high $_{c}$ level), simple on Guix (low $_{c}$ level)
 
 # ** NN training
 # - find, i.e. ask which is the appropriate NN type?
 # - split to train and test data.
+
+
+
+# ** Ordering relations / predicates with signatures
+#       \begin{align*}
+#           \leq_N : P \times P \rightarrow \mathbb{B} \\
+#           \leq_G : P \times P \rightarrow \mathbb{B}
+#       \end{align*}
+#     defined as
+#       \begin{align*}
+#           \forall p_i\in P, \forall p_j \in P, \leq_N = TODO \\
+#           \forall p_i\in P, \forall p_j \in P, \leq_G = TODO
+#       \end{align*}
+#     where the domains of $\leq_N$, $\leq_G$ are sets
+#       \begin{align*}
+#           O_N = \{ p_i \leq_N p_j \mid p_i \in P \land p_j \in P \} = \{ \top, \bot \} \\
+#           O_G = \{ p_i \leq_G p_j \mid p_i \in P \land p_j \in P \} = \{ \top, \bot \}
+#       \end{align*}
+
+#     for package definition complexity for Nix and Guix.
+
+#     Order the intersection of normalized names $P$ by $\leq_N$ and $\leq_G$:
+#       \begin{align*}
+#           P_{\leq_N} &= (P, \leq_N) \implies C_{N} = \{1, \ldots, n_N\} \\
+#           P_{\leq_G} &= (P, \leq_G) \implies C_{G} = \{1, \ldots, m_G\}
+#       \end{align*}
+
+#   $P_{\leq_N}$, $P_{\leq_G}$ are index by the order relations giving their
+#   elements an index in the $C_{N}$, $C_{G}$.
