@@ -1,18 +1,19 @@
 #+TITLE: N2G
+# #+SUBTITLE: /Some subtitle/
+# #+SETUPFILE: setup.org
+#+LATEX_CLASS: article
+#+LATEX_CLASS_OPTIONS: [a4paper, 11pt]
 #+AUTHOR: Rostislav Svoboda
 #+DATE: {{{time(%B %d\, %Y)}}}
-#+OPTIONS: toc:nil
-#+LaTeX_CLASS: article
-#+LaTeX_CLASS_OPTIONS: [a4paper, 11pt]
-# #+LaTeX_HEADER: \usepackage{amsmath}
-# #+LaTeX_HEADER: \usepackage{mathtools}
+#+OPTIONS: toc:nil html-postamble:nil
+# See https://orgmode.org/manual/Publishing-options.html
+# #+OPTIONS: html-postamble:"<p class=\"author\">%a (%e)</p><p class=\"date\">Last modified: %C</p>"
+# #+HTML_HEAD: <style>#postamble { display:none; }</style>
+
 #+HTML_HEAD: <link rel="stylesheet" type="text/css" href="style.css" />
 #+HTML_HEAD_EXTRA: <style> body { /* some ad-hoc css styling */ } </style>
-
-# $ \mathbb{N} $ symbol for natural numbers
-# Multi-line page-centered formula
-# \begin{align*}
-# \end{align*}
+# #+HTML_HEAD_EXTRA: <div style="display: none">\( \newcommand{\bijection}{\mathbin{\rightarrowtail \hspace{-10pt} \twoheadrightarrow}} \)</div>
+#+HTML_HEAD_EXTRA: <div style="display: none">\( \newcommand{\bijection}{\mathrel{\rlap{\rightarrowtail}}\mathrel{\mkern2mu\twoheadrightarrow}} \)</div>
 
 * Normalizing and Commonalities
 Define: \\
@@ -83,11 +84,9 @@ For that purpose define:
          f_{nG} : C_{G} \rightarrow C
       \end{align*}
   I.e.
-  # bijection
-  # \mathbin{\rightarrowtail \hspace{-10pt} \twoheadrightarrow}
       \begin{align*}
          f_{nN} : C_{N} \twoheadrightarrow C_{G} \\
-         f_{nG} : C_{G} \mathbin{\rightarrowtail \hspace{-10pt} \twoheadrightarrow} C_{G}
+         f_{nG} : C_{G} \bijection C_{G}
       \end{align*}
   defined as
       \begin{align*}
