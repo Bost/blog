@@ -13,68 +13,88 @@
 #+HTML_HEAD: <link rel="stylesheet" type="text/css" href="style.css" />
 #+HTML_HEAD_EXTRA: <style> body { /* some ad-hoc css styling */ } </style>
 # #+HTML_HEAD_EXTRA: <div style="display: none">\( \newcommand{\bijection}{\mathbin{\rightarrowtail \hspace{-10pt} \twoheadrightarrow}} \)</div>
-#+HTML_HEAD_EXTRA: <div style="display: none">\( \newcommand{\bijection}{\mathrel{\rlap{\rightarrowtail}}\mathrel{\mkern2mu\twoheadrightarrow}} \)</div>
+# #+HTML_HEAD_EXTRA: <div style="display: none">\( \newcommand{\bijection}{\mathrel{\rlap{\rightarrowtail}}\mathrel{\mkern2mu\twoheadrightarrow}} \)</div>
+#+HTML_HEAD_EXTRA: <div style="display: none">\( \newcommand{\bijection}{\leftrightarrow} \)</div>
+#+HTML_HEAD_EXTRA: <div style="display: none">\( \newcommand{\inv}[1]{#1^{-1}} \)</div>
 
 * Normalizing and Commonalities
 Define: \\
-- Sets of package-names $N$, $G$ of packages available for Nix and Guix:
+- Sets of package-names $N$, $N'$ of packages available for Nix and $G$, $G'$ of
+  packages available for Guix:
       \begin{align*}
-          N = \{p_1 ,p_2, \dots p_m\}&, N' = \{p'_1 ,p'_2, \dots p'_m \} \\
-          G = \{p_1 ,p_2, \dots p_n\}&, G' = \{p'_1 ,p'_2, \dots p'_n \}
+          N  &= \{p_{N_1}  \dots p_{N_n}  \} \\
+          N' &= \{p'_{N_1} \dots p'_{N_n} \} \\
+          G  &= \{p_{G_1}  \dots p_{G_m}  \} \\
+          G' &= \{p'_{G_1} \dots p'_{G_m} \} \\
       \end{align*}
-  such that $N, N', G, G' \subseteq \Sigma^*$.
-- Functions for normalizing package-names for Nix and Guix with signatures:
-      \begin{align*}
-          f_{pN} &: N \rightarrow N' \\
-          f_{pG} &: G \rightarrow G'
-      \end{align*}
+  such that $N, N', G, G' \subseteq \Sigma^*$ (i.e. elements are strings) and
+  their cardinalities are $|N| = |N'|, |G| = |G'|$.
+
+- Bijective functions for normalizing and inversed functions for un-normalizing
+  package-names for Nix and Guix with signatures:
+      \begin{gather*}
+          f_{pN} : N \bijection N' : \inv{f_{pN}} \\
+          f_{pG} : G \bijection G' : \inv{f_{pG}}
+      \end{gather*}
   defined as
   # Normalize the package-names of both lists $N$, $G$ and turn the normalized
   # lists into Sets:
       \begin{align*}
-           \forall n \in N &, f_{nN}(n) = TODO \\
-           \forall g \in G &, f_{nG}(g) = TODO \\
+           \forall n  \in N  &, f_{nN}(n)        &= TODO \\
+           \forall n' \in G' &, \inv{f_{nN}}(n') &= TODO \\
+           \forall g  \in G  &, f_{nG}(g)        &= TODO \\
+           \forall g' \in G' &, \inv{f_{nG}}(g') &= TODO \\
       \end{align*}
-  where the domains of $f_{pN}$, $f_{pG}$ are sets of normalized strings
+  where codomains of $f_{pN}$, $f_{pG}$ are sets of normalized package-names
       \begin{align*}
           N' &= \{ f_{pN}(n) \mid n \in N \} \\
           G' &= \{ f_{pG}(g) \mid g \in G \}
       \end{align*}
-
-- The intersection $P$ (omitting the superscript $'$ at $P$):
+  where codomains of $\inv{f_{pN}}$, $\inv{f_{pG}}$ are sets of un-normalized
+  package-names
       \begin{align*}
-          P = N' \cap G'
+          N &= \{ \inv{f_{pN}}(n') \mid n' \in N' \} \\
+          G &= \{ \inv{f_{pG}}(g') \mid g' \in G' \}
+      \end{align*}
+  \\
+  Idea: use package git repository URL and commit ID for normalization.
+
+- The intersection $P'$
+      \begin{align*}
+          P' = N' \cap G'
       \end{align*}
   is a set of normalized names of packages available in both operating systems.
-  # Cardinality invariant : $|P| \leq |N'| \land |P| \leq |G'|$
+  # Cardinality invariant : $|P'| \leq |N'| \land |P'| \leq |G'|$
 
 *  Package complexity and Ordering
 Define: \\
 - Functions for computing package definition complexity in Nix and Guix with
   signatures:
       \begin{align*}
-          f_{cN} : P \rightarrow \mathbb{N} \\
-          f_{cG} : P \rightarrow \mathbb{N}
+          f_{cN} : P' \rightarrow \mathbb{N} \\
+          f_{cG} : P' \rightarrow \mathbb{N}
       \end{align*}
   defined as "The more complex a package definition is the higher complexity
   level the it has." \\
       \begin{align*}
-          \forall p\in P, f_{cN}(p) = TODO \\
-          \forall p\in P, f_{cG}(p) = TODO
+          \forall p'\in P', f_{cN}(p') = TODO \\
+          \forall p'\in P', f_{cG}(p') = TODO
       \end{align*}
   where the domains of $f_{cN}$, $f_{cG}$ are sets of complexities
       \begin{align*}
-           C_{N} = \{ f_{cN}(p) \mid p \in P \} &= \{0 \ldots n_{N}\} \\
-           C_{G} = \{ f_{cG}(p) \mid p \in P \} &= \{0 \ldots m_{G}\}
+           C_{N} = \{ f_{cN}(p') \mid p' \in P' \} &= \{1 \ldots n_{N}\} \\
+           C_{G} = \{ f_{cG}(p') \mid p' \in P' \} &= \{1 \ldots m_{G}\}
       \end{align*}
+  Complexity $0$ would mean "package undefined in a given operating system".
 
 However the basic complexity levels $C_{N}$ in Nix and $C_{G}$ in Guix have
-(probably) different cardinalities $n_N \neq m_G$, since they are independent
-from each other and must be further normalized. I.e. some mapping (e.g. grouping
-of the basic levels) must be defined so that the normalized complexity levels
-correspond to each other. \\
-It will be probably a surjective mapping (i.e. an epimorphism)
-$\twoheadrightarrow$, since all complexity levels of $C_{G}$ must be covered
+(probably) different cardinalities $|C_{N}| \neq |C_{G}|$ i.e. $n_N \neq m_G$,
+since they are independent from each other and must be further normalized. I.e.
+some mapping (e.g. grouping of the basic levels) must be defined so that the
+normalized complexity levels correspond to each other. \\
+
+It will be probably a surjective mapping since all complexity levels of $C_{G}$
+must be covered
 \\
 For that purpose define:
 - Normalization domain $C = C_{G}$
@@ -85,8 +105,8 @@ For that purpose define:
       \end{align*}
   I.e.
       \begin{align*}
-         f_{nN} : C_{N} \twoheadrightarrow C_{G} \\
-         f_{nG} : C_{G} \bijection C_{G}
+         f_{nN} & : C_{N} \twoheadrightarrow C_{G} & & \text{ surjection} \\
+         f_{nG} & : C_{G} \xrightarrow{id} C_{G}   & & \text{ identity}   \\
       \end{align*}
   defined as
       \begin{align*}
@@ -96,7 +116,7 @@ For that purpose define:
   where the domains of $f_{nN}$, $f_{nG}$ are sets
       \begin{align*}
           C = C_{G} &= \{ f_{nN}(c_{N}) \mid c_{N} \in C_{N} \} \\
-                    &= \{ f_{cG}(p) \mid p \in P \} \\
+                    &= \{ f_{cG}(p') \mid p' \in P' \} \\
                     &= \{0 \ldots m_{G}\}
       \end{align*}
 
@@ -106,46 +126,58 @@ For that purpose define:
   complexity distances
   # for every package $p \in P$
       \begin{align*}
-         f_{d} : P \rightarrow \mathbb{N} \\
+         f_{d} : P' \rightarrow \mathbb{N} \\
       \end{align*}
   defined as
       \begin{align*}
-           \forall p \in P, f_{d}(p) = \|f_{nN}(p) - f_{nG}(p)\| \\
+           \forall p' \in P', f_{d}(p') = \|f_{nN}(p') - f_{nG}(p')\| \\
       \end{align*}
   where the domain of $f_{d}$ is a set of distances
       \begin{align*}
-           D = \{ f_{d}(p) \mid p \in P \} = \{ 0 \dots n\}
+           D = \{ f_{d}(p') \mid p' \in P' \} = \{ 0 \dots n\}
       \end{align*}
-      where $n = \max(n_{N}, m_{G})$.
+  where $n = \max(n_{N}, m_{G})$.
   # In fact the $n_{N}$, $m_{G}$
 
-- For every level of complexity $c_i \in C = \{0 \ldots n\}$ select packages
-  from $P$ which have the same distance, i.e. $f_{d}(p_{c_i}) = 0$.
+- For every level of complexity $c_i \in C = \{1 \ldots n\}$ ($0$ means "package
+  undefined in a given OS") select packages from $P$ which have the same
+  distance, i.e. $f_{d}(p'_{c_i}) = 0$.
 
   IOW divide the packages present in both operating systems into groups of the
   same complexity:
-      \begin{gather*}
-          P_{c_0d_0} = \{ p_{c_0} \in P \mid f_{d}(p_{c_0}) = 0\} \\
+      \begin{align*}
+        \forall c_i \in C = \{1 \ldots n\}, \\
+          P'_{c_1d_0} = \{ p'_{c_1} \in P' & \mid f_{d}(p'_{c_1}) = 0\} \\
           \vdots \\
-          P_{c_nd_0} = \{ p_{c_n} \in P \mid f_{d}(p_{c_n}) = 0\}
-      \end{gather*}
+          P'_{c_nd_0} = \{ p'_{c_n} \in P' & \mid f_{d}(p'_{c_n}) = 0\}
+      \end{align*}
 
       # \begin{align*}
-      #     f_{d}(p_{c_i}) = 0
+      #     f_{d}(p'_{c_i}) = 0
       # \end{align*}
 
 * Conversion
-- For every element of every group find the package in Nix and in Guix (i.e.
-  inverse function), compare them and convert them i.e.
+- For every element of every group find the un-normalized packages in Nix and
+  in Guix
+      # \begin{align*}
+      #     \forall p'_{c_i} \in P'_{c_id_0}, \inv{f_{pN}}(p'_{c_i}) = N_{c_i}, \inv{f_{pG}}(p'_{c_i}) = G_{c_i} \\
+      # \end{align*}
       \begin{align*}
-          \forall p_{c_i} \in P_{c_id_0}, \\
-            Nix(p_{c_i})  &= ... = N_{c_i} \\
-            Guix(p_{c_i}) &= ... = G_{c_i} \\
+          \forall p'_{c_i} \in P'_{c_id_0}, \\
+            \inv{f_{pN}}(p'_{c_i}) &= N_{c_i} \\
+            \inv{f_{pG}}(p'_{c_i}) &= G_{c_i} \\
+      \end{align*}
+  and convert them using function with signature
+      \begin{align*}
             t: N_{c_i} \rightarrow G_{c_i}
       \end{align*}
-  # Convert the $P_{c_1d_0} \dots P_{c_nd_0}$ packages.
-  This transformation / translation $t$ should be relatively simple.
-  TODO specify the $t$.
+  defined as
+  # where the domain and codomain are defined above
+      \begin{align*}
+          \forall n_{c_i} \in N_{c_id_0}, t(n_{c_i}) = TODO \\
+      \end{align*}
+
+  This conversion $t$ should be relatively simple.
 - Convert the packages which definitions complexity significantly differs
   between the operating systems.
   + Simple on Nix (low $_{c}$ level), complex on Guix (high $_{c}$ level)
@@ -159,26 +191,26 @@ For that purpose define:
 
 # ** Ordering relations / predicates with signatures
 #       \begin{align*}
-#           \leq_N : P \times P \rightarrow \mathbb{B} \\
-#           \leq_G : P \times P \rightarrow \mathbb{B}
+#           \leq_N : P' \times P' \rightarrow \mathbb{B} \\
+#           \leq_G : P' \times P' \rightarrow \mathbb{B}
 #       \end{align*}
 #     defined as
 #       \begin{align*}
-#           \forall p_i\in P, \forall p_j \in P, \leq_N = TODO \\
-#           \forall p_i\in P, \forall p_j \in P, \leq_G = TODO
+#           \forall p'_i\in P', \forall p'_j \in P', \leq_N = TODO \\
+#           \forall p'_i\in P', \forall p'_j \in P', \leq_G = TODO
 #       \end{align*}
 #     where the domains of $\leq_N$, $\leq_G$ are sets
 #       \begin{align*}
-#           O_N = \{ p_i \leq_N p_j \mid p_i \in P \land p_j \in P \} = \{ \top, \bot \} \\
-#           O_G = \{ p_i \leq_G p_j \mid p_i \in P \land p_j \in P \} = \{ \top, \bot \}
+#           O_N = \{ p'_i \leq_N p'_j \mid p'_i \in P' \land p'_j \in P' \} = \{ \top, \bot \} \\
+#           O_G = \{ p'_i \leq_G p'_j \mid p'_i \in P' \land p'_j \in P' \} = \{ \top, \bot \}
 #       \end{align*}
 
 #     for package definition complexity for Nix and Guix.
 
 #     Order the intersection of normalized names $P$ by $\leq_N$ and $\leq_G$:
 #       \begin{align*}
-#           P_{\leq_N} &= (P, \leq_N) \implies C_{N} = \{1, \ldots, n_N\} \\
-#           P_{\leq_G} &= (P, \leq_G) \implies C_{G} = \{1, \ldots, m_G\}
+#           P'_{\leq_N} &= (P', \leq_N) \implies C_{N} = \{1, \ldots, n_N\} \\
+#           P'_{\leq_G} &= (P', \leq_G) \implies C_{G} = \{1, \ldots, m_G\}
 #       \end{align*}
 
 #   $P_{\leq_N}$, $P_{\leq_G}$ are index by the order relations giving their
