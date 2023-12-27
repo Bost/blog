@@ -3,7 +3,7 @@
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <head>
-<!-- 2023-12-22 Fri 16:43 -->
+<!-- 2023-12-27 St 01:56 -->
 <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>N2G</title>
@@ -232,8 +232,8 @@
 <div id="content" class="content">
 <h1 class="title">N2G</h1>
 
-<div id="outline-container-org1bc2e6a" class="outline-2">
-<h2 id="org1bc2e6a"><span class="section-number-2">1.</span> Normalizing and Commonalities</h2>
+<div id="outline-container-org8ad20b7" class="outline-2">
+<h2 id="org8ad20b7"><span class="section-number-2">1.</span> Normalizing and Commonalities</h2>
 <div class="outline-text-2" id="text-1">
 <p>
 Define: <br />
@@ -243,15 +243,18 @@ Define: <br />
 Sets of package names \(N\), \(G\) of packages available for Nix and Guix:
 </p>
 \begin{align*}
-    N &= \{p_1 ,p_2, \dots p_m\} \subseteq \Sigma^* \\
-    G &= \{p_1 ,p_2, \dots p_n\} \subseteq \Sigma^*
-\end{align*}</li>
+    N = \{p_1 ,p_2, \dots p_m\}&, N' = \{p'_1 ,p'_2, \dots p'_m \} \\
+    G = \{p_1 ,p_2, \dots p_n\}&, G' = \{p'_1 ,p'_2, \dots p'_n \}
+\end{align*}
+<p>
+such that \(N, N', G, G' \subseteq \Sigma^*\).
+</p></li>
 <li><p>
 Functions for normalizing package names for Nix and Guix with signatures:
 </p>
 \begin{align*}
-    f_{pN} : N \rightarrow \Sigma^* \\
-    f_{pG} : G \rightarrow \Sigma^*
+    f_{pN} : N \rightarrow N' \\
+    f_{pG} : G \rightarrow G'
 \end{align*}
 <p>
 defined as
@@ -282,8 +285,8 @@ is a set of normalized names of packages available in both operating systems.
 </div>
 </div>
 
-<div id="outline-container-org99aa73e" class="outline-2">
-<h2 id="org99aa73e"><span class="section-number-2">2.</span> Package complexity and Ordering</h2>
+<div id="outline-container-orgb0c558b" class="outline-2">
+<h2 id="orgb0c558b"><span class="section-number-2">2.</span> Package complexity and Ordering</h2>
 <div class="outline-text-2" id="text-2">
 <p>
 Define: <br />
@@ -309,21 +312,21 @@ level the it has." <br />
 and the domains of \(f_{cN}\), \(f_{cG}\) are sets of complexities
 </p>
 \begin{align*}
-     C_{N} = \{ f_{cN}(p) \mid p \in P \} &= \{0, \ldots, n_{N}\} \\
-     C_{G} = \{ f_{cG}(p) \mid p \in P \} &= \{0, \ldots, m_{G}\}
+     C_{N} = \{ f_{cN}(p) \mid p \in P \} &= \{0 \ldots n_{N}\} \\
+     C_{G} = \{ f_{cG}(p) \mid p \in P \} &= \{0 \ldots m_{G}\}
 \end{align*}</li>
 </ul>
 
 <p>
-However the basic complexity levels in Nix \(C_{N}\) and Guix \(C_{G}\) have
+However the basic complexity levels \(C_{N}\) in Nix and \(C_{G}\) in Guix have
 (probably) different cardinalities \(n_N \neq m_G\), since they are independent
 from each other and must be further normalized. I.e. some mapping (e.g. grouping
 of the basic levels) must be defined so that the normalized complexity levels
 correspond to each other. <br />
 It will be probably a surjective mapping (i.e. an epimorphism)
-\(\twoheadrightarrow\) (since all complexity levels of \(C_{G}\) must be covered)
+\(\twoheadrightarrow\), since all complexity levels of \(C_{G}\) must be covered
 <br />
-For that purpose define
+For that purpose define:
 </p>
 <ul class="org-ul">
 <li>Normalization domain \(C = C_{G}\)</li>
@@ -340,7 +343,7 @@ I.e.
 
 \begin{align*}
    f_{nN} : C_{N} \twoheadrightarrow C_{G} \\
-   f_{nG} : C_{G} \rightarrowtail C_{G}
+   f_{nG} : C_{G} \mathbin{\rightarrowtail \hspace{-10pt} \twoheadrightarrow} C_{G}
 \end{align*}
 <p>
 defined as
@@ -353,21 +356,23 @@ defined as
 and the domains of \(f_{nN}\), \(f_{nG}\) are sets
 </p>
 \begin{align*}
-    C = \{f_{nN}(c_{N}) &\mid c_{N} \in C_{N} \} = C_{G} \\
-    C = \{f_{nG}(c_{G}) &\mid c_{G} \in C_{G} \} = C_{G}
+    C = C_{G} &= \{ f_{nN}(c_{N}) \mid c_{N} \in C_{N} \} \\
+              &= \{ f_{cG}(p) \mid p \in P \} \\
+              &= \{0 \ldots m_{G}\}
 \end{align*}</li>
 </ul>
 
 <ul class="org-ul">
 <li><p>
-The complexity normalization enables us to compute complexity distance for
-every package \(p \in P\) compute complexity distance
+The complexity normalization enables us to define a function for computing
+complexity distances
 </p>
+
 \begin{align*}
    f_{d} : P \rightarrow \mathbb{N} \\
 \end{align*}
 <p>
-where \(f_{d}\) is defined
+where \(f_{d}\) is defined as
 </p>
 \begin{align*}
      \forall p \in P, f_{d}(p) = \|f_{nN}(p) - f_{nG}(p)\| \\
@@ -379,41 +384,42 @@ and the domain of \(f_{d}\) is a set of distances
      D = \{ f_{d}(p) \mid p \in P \} = \{ 0 \dots n\}
 \end{align*}
 <p>
-where \(n\) is \(\max(n_{N}, m_{G})\).
-In fact the \(n_{N}\), \(m_{G}\)
+where \(n = \max(n_{N}, m_{G})\).
 </p></li>
 
 <li><p>
-For every level of complexity \(c_i \in C = \{0 \ldots n\}\), select packages
-from \(P\) for which
-</p>
-\begin{align*}
-    f_{d}(p_{c_i}) = 0
-\end{align*}
-<p>
-For packages with complexity level \(0 \dots n\):
+For every level of complexity \(c_i \in C = \{0 \ldots n\}\) select packages
+from \(P\) which have the same distance, i.e. \(f_{d}(p_{c_i}) = 0\)
+I.e. the packages are divided into groups of the same complexity:
 </p>
 \begin{gather*}
-    P_{c_1d_0} = \{ p_{c_1} \in P \mid f_{d}(p_{c_1}) = 0\} \\
+    P_{c_0d_0} = \{ p_{c_0} \in P \mid f_{d}(p_{c_0}) = 0\} \\
     \vdots \\
     P_{c_nd_0} = \{ p_{c_n} \in P \mid f_{d}(p_{c_n}) = 0\}
 \end{gather*}</li>
 </ul>
-
-
-
-<p>
-I.e. the complexity distance is 0 for every complexity level
-</p>
 </div>
 </div>
 
-<div id="outline-container-org713e1a2" class="outline-2">
-<h2 id="org713e1a2"><span class="section-number-2">3.</span> Conversion</h2>
+<div id="outline-container-org5f56573" class="outline-2">
+<h2 id="org5f56573"><span class="section-number-2">3.</span> Conversion</h2>
 <div class="outline-text-2" id="text-3">
 <ul class="org-ul">
-<li>Convert the \(P_{c_1d_0} \dots P_{c_nd_0}\) packages.
-This transformation / translation should be relatively simple.</li>
+<li><p>
+For every element of every group find the package in Nix and in Guix (i.e.
+inverse function), compare them and convert them i.e.
+</p>
+\begin{align*}
+    \forall p_{c_i} \in P_{c_id_0}, \\
+      Nix(p_{c_i})  &= ... = N_{c_i} \\
+      Guix(p_{c_i}) &= ... = G_{c_i} \\
+      t: N_{c_i} \rightarrow G_{c_i}
+\end{align*}
+
+<p>
+This transformation / translation \(t\) should be relatively simple.
+TODO specify the \(t\).
+</p></li>
 <li>Convert the packages which definitions complexity significantly differs
 between the operating systems.
 <ul class="org-ul">
@@ -425,9 +431,9 @@ between the operating systems.
 </div>
 </div>
 <div id="postamble" class="status">
-<p class="date">Date: December 22, 2023</p>
+<p class="date">Date: december 27, 2023</p>
 <p class="author">Author: Rostislav Svoboda</p>
-<p class="date">Created: 2023-12-22 Fri 16:43</p>
+<p class="date">Created: 2023-12-27 St 01:56</p>
 <p class="validation"><a href="https://validator.w3.org/check?uri=referer">Validate</a></p>
 </div>
 </body>
