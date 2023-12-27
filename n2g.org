@@ -16,25 +16,25 @@
 
 * Normalizing and Commonalities
 Define: \\
-- Sets of package names $N$, $G$ of packages available for Nix and Guix:
+- Sets of package-names $N$, $G$ of packages available for Nix and Guix:
       \begin{align*}
           N = \{p_1 ,p_2, \dots p_m\}&, N' = \{p'_1 ,p'_2, \dots p'_m \} \\
           G = \{p_1 ,p_2, \dots p_n\}&, G' = \{p'_1 ,p'_2, \dots p'_n \}
       \end{align*}
   such that $N, N', G, G' \subseteq \Sigma^*$.
-- Functions for normalizing package names for Nix and Guix with signatures:
+- Functions for normalizing package-names for Nix and Guix with signatures:
       \begin{align*}
-          f_{pN} : N \rightarrow N' \\
-          f_{pG} : G \rightarrow G'
+          f_{pN} &: N \rightarrow N' \\
+          f_{pG} &: G \rightarrow G'
       \end{align*}
   defined as
-  # Normalize the package names of both lists $N$, $G$ and turn the normalized
+  # Normalize the package-names of both lists $N$, $G$ and turn the normalized
   # lists into Sets:
       \begin{align*}
-           \forall n \in N, f_{nN}(n) &= TODO \\
-           \forall g \in G, f_{nG}(g) &= TODO \\
+           \forall n \in N &, f_{nN}(n) = TODO \\
+           \forall g \in G &, f_{nG}(g) = TODO \\
       \end{align*}
-  and the domains of $f_{pN}$, $f_{pG}$ are sets of normalized strings
+  where the domains of $f_{pN}$, $f_{pG}$ are sets of normalized strings
       \begin{align*}
           N' &= \{ f_{pN}(n) \mid n \in N \} \\
           G' &= \{ f_{pG}(g) \mid g \in G \}
@@ -49,7 +49,7 @@ Define: \\
 
 *  Package complexity and Ordering
 Define: \\
-- Function for computing package definition complexity in Nix and Guix with
+- Functions for computing package definition complexity in Nix and Guix with
   signatures:
       \begin{align*}
           f_{cN} : P \rightarrow \mathbb{N} \\
@@ -61,7 +61,7 @@ Define: \\
           \forall p\in P, f_{cN}(p) = TODO \\
           \forall p\in P, f_{cG}(p) = TODO
       \end{align*}
-  and the domains of $f_{cN}$, $f_{cG}$ are sets of complexities
+  where the domains of $f_{cN}$, $f_{cG}$ are sets of complexities
       \begin{align*}
            C_{N} = \{ f_{cN}(p) \mid p \in P \} &= \{0 \ldots n_{N}\} \\
            C_{G} = \{ f_{cG}(p) \mid p \in P \} &= \{0 \ldots m_{G}\}
@@ -94,7 +94,7 @@ For that purpose define:
          \forall c_{N} \in C_{N}, f_{nN}(c_{N}) &= TODO \\
          \forall c_{G} \in C_{G}, f_{nG}(c_{G}) &= \mathrm{id}(c_{G}) = c_{G}
       \end{align*}
-  and the domains of $f_{nN}$, $f_{nG}$ are sets
+  where the domains of $f_{nN}$, $f_{nG}$ are sets
       \begin{align*}
           C = C_{G} &= \{ f_{nN}(c_{N}) \mid c_{N} \in C_{N} \} \\
                     &= \{ f_{cG}(p) \mid p \in P \} \\
@@ -103,17 +103,17 @@ For that purpose define:
 
 # TODO for normalized complexities use $\bar{c}$ or $\vec{c}$
 
-- The complexity normalization enables us to define a function for computing
+- The complexity normalization enables us to derive a function for computing
   complexity distances
   # for every package $p \in P$
       \begin{align*}
          f_{d} : P \rightarrow \mathbb{N} \\
       \end{align*}
-  where $f_{d}$ is defined as
+  defined as
       \begin{align*}
            \forall p \in P, f_{d}(p) = \|f_{nN}(p) - f_{nG}(p)\| \\
       \end{align*}
-  and the domain of $f_{d}$ is a set of distances
+  where the domain of $f_{d}$ is a set of distances
       \begin{align*}
            D = \{ f_{d}(p) \mid p \in P \} = \{ 0 \dots n\}
       \end{align*}
@@ -121,8 +121,10 @@ For that purpose define:
   # In fact the $n_{N}$, $m_{G}$
 
 - For every level of complexity $c_i \in C = \{0 \ldots n\}$ select packages
-  from $P$ which have the same distance, i.e. $f_{d}(p_{c_i}) = 0$
-  I.e. the packages are divided into groups of the same complexity:
+  from $P$ which have the same distance, i.e. $f_{d}(p_{c_i}) = 0$.
+
+  IOW divide the packages present in both operating systems into groups of the
+  same complexity:
       \begin{gather*}
           P_{c_0d_0} = \{ p_{c_0} \in P \mid f_{d}(p_{c_0}) = 0\} \\
           \vdots \\
@@ -149,11 +151,11 @@ For that purpose define:
   between the operating systems.
   + Simple on Nix (low $_{c}$ level), complex on Guix (high $_{c}$ level)
   + Complex on Nix (high $_{c}$ level), simple on Guix (low $_{c}$ level)
+  This transformation / translation may not be that easy.
 
 # ** NN training
 # - find, i.e. ask which is the appropriate NN type?
 # - split to train and test data.
-
 
 
 # ** Ordering relations / predicates with signatures
